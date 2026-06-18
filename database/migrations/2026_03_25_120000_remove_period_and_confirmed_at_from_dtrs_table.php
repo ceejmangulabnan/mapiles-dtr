@@ -13,10 +13,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Disable foreign key checks to allow dropping indices safely
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('dtrs', function (Blueprint $table) {
             $table->dropUnique('dtrs_employee_id_month_year_unique');
             $table->dropColumn(['month', 'year', 'confirmed_at']);
         });
+
+        // Re-enable foreign key checks
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -52,8 +58,13 @@ return new class extends Migration
                 ]);
         }
 
+        // Disable foreign key checks during reversal down to add the unique key back safely
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('dtrs', function (Blueprint $table) {
             $table->unique(['employee_id', 'month', 'year'], 'dtrs_employee_id_month_year_unique');
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 };

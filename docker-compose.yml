@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Main Application Container (Laravel Backend + Vite Frontend)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mapiles_dtr_app
+    restart: always
+    ports:
+      - "8000:8000"  # Exposes Laravel server
+      - "5173:5173"  # Exposes Vite Hot-Reloading server
+    volumes:
+      - .:/var/www
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=mapiles_dtr
+      - DB_USERNAME=dtr_user
+      - DB_PASSWORD=dtr_secure_pass
+    depends_on:
+      - db
+
+  # Database Container
+  db:
+    image: mysql:8.0
+    container_name: mapiles_dtr_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_password
+      MYSQL_DATABASE: mapiles_dtr
+      MYSQL_USER: dtr_user
+      MYSQL_PASSWORD: dtr_secure_pass
+    ports:
+      - "3306:3306"  # Exposes database port
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
