@@ -104,6 +104,9 @@ export default function CalculatePageContent({
                             onOpenChange={attendance.handleSummaryDialogChange}
                             onConfirm={attendance.confirmDtr}
                             summary={attendance.dtrSummary}
+                            sssOverride={attendance.manualSssOverride}
+                            onSssOverrideChange={attendance.setManualSssOverride}
+                            monthlyRate={attendance.selectedEmployee?.monthlyRate ?? ''}
                         />
                     </>
                 ) : null}

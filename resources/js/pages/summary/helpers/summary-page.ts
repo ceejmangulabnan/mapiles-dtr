@@ -27,6 +27,7 @@ export type SummaryDtr = {
     dailyRateBasis: string;
     totalOvertimeMinutes: number;
     totalOvertimeAmount: string;
+    sssDeduction: string;
     totalAmount: string;
     confirmedAt: string | null;
     entries: SummaryDtrEntry[];

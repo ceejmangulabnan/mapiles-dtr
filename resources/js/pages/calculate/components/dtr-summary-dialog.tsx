@@ -7,6 +7,22 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
+import {
+    SSS_BASE_SALARY,
+    SSS_BASE_CONTRIBUTION,
+    SSS_INCREMENT_STEP,
+    SSS_INCREMENT_AMOUNT,
+    formatRateAmount,
+    sssContribution,
+} from '../helpers/calculate-page';
 import type { DtrSummary } from '../hooks/use-calculate-attendance';
 
 type DtrSummaryDialogProps = {
@@ -15,6 +31,9 @@ type DtrSummaryDialogProps = {
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
     summary: DtrSummary;
+    sssOverride: string;
+    onSssOverrideChange: (value: string) => void;
+    monthlyRate: string;
 };
 
 export default function DtrSummaryDialog({
@@ -23,8 +42,26 @@ export default function DtrSummaryDialog({
     onOpenChange,
     onConfirm,
     summary,
+    sssOverride,
+    onSssOverrideChange,
+    monthlyRate,
 }: DtrSummaryDialogProps) {
     const hasOvertime = summary.overtime.totalMinutes > 0;
+    const hasMonthlyRate = monthlyRate.trim() !== '' && Number.isFinite(Number(monthlyRate));
+
+    function sssFormulaBreakdown(): string {
+        const salary = Number(monthlyRate);
+        if (!Number.isFinite(salary) || salary === 0) {
+            return 'No monthly rate set for this employee.';
+        }
+        if (salary < SSS_BASE_SALARY) {
+            return `Monthly Rate: ${formatRateAmount(salary)}. Below ₱${SSS_BASE_SALARY.toLocaleString()}, flat rate of ${formatRateAmount(SSS_BASE_CONTRIBUTION)}.`;
+        }
+        const excess = Math.max(0, salary - SSS_BASE_SALARY);
+        const steps = Math.floor(excess / SSS_INCREMENT_STEP);
+        const total = sssContribution(monthlyRate);
+        return `Monthly Rate: ${formatRateAmount(salary)}. Base: ${formatRateAmount(SSS_BASE_CONTRIBUTION)} + ${steps + 1} step${steps + 1 > 1 ? 's' : ''} × ${formatRateAmount(SSS_INCREMENT_AMOUNT)} = ${formatRateAmount(total)}.`;
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,14 +113,126 @@ export default function DtrSummaryDialog({
                             {summary.regularAmountLabel}
                         </p>
                     </div>
-
                     <div className="rounded-lg border p-4">
                         <p className="text-sm text-muted-foreground">
-                            Total pay
+                            Total pay (gross)
                         </p>
                         <p className="mt-1 font-medium text-foreground">
                             {summary.totalAmountLabel}
                         </p>
+                    </div>
+                </div>
+
+                <div className="rounded-lg border bg-muted/10 p-4">
+                    <p className="text-sm font-semibold text-foreground">
+                        SSS deduction
+                    </p>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-4">
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Monthly rate
+                            </p>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {hasMonthlyRate
+                                    ? formatRateAmount(monthlyRate)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs text-muted-foreground">
+                                    Auto-computed SSS
+                                </p>
+                                {hasMonthlyRate && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 shrink-0"
+                                            >
+                                                <Info className="h-3 w-3" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                            side="bottom"
+                                            align="start"
+                                            className="max-w-xs text-xs"
+                                        >
+                                            {sssFormulaBreakdown()}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {hasMonthlyRate
+                                    ? formatRateAmount(summary.sssContribution)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Override (optional)
+                            </p>
+                            <div className="mt-0.5">
+                                <Input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={sssOverride}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
+                                            onSssOverrideChange(val);
+                                        }
+                                    }}
+                                    className="h-8 w-full max-w-36 text-sm"
+                                    placeholder={
+                                        hasMonthlyRate
+                                            ? `Auto: ${summary.sssDeductionLabel}`
+                                            : '0.00'
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Effective deduction
+                            </p>
+                            <p className="mt-0.5 font-semibold text-foreground">
+                                {summary.sssDeductionLabel}
+                            </p>
+                            {sssOverride.trim() !== '' && (
+                                <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                                    Auto: {formatRateAmount(summary.sssContribution)}
+                                    {Number(sssOverride) > summary.sssContribution
+                                        ? ' (higher)'
+                                        : Number(sssOverride) < summary.sssContribution && Number(sssOverride) >= 0
+                                            ? ' (lower)'
+                                            : ''}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-3 rounded-lg border bg-primary/5 p-3">
+                        <div className="flex items-baseline justify-between gap-4">
+                            <div>
+                                <p className="text-xs text-muted-foreground">
+                                    Net pay
+                                </p>
+                                <p className="mt-0.5 text-lg font-bold text-foreground">
+                                    {summary.netPayLabel}
+                                </p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {summary.totalAmountLabel} − {summary.sssDeductionLabel} SSS
+                            </p>
+                        </div>
                     </div>
                 </div>
 

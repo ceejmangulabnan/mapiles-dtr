@@ -24,6 +24,11 @@ import {
     getWorkedMinutes,
     isHalfDayTimeIn,
     monthOptions,
+    sssContribution,
+    SSS_BASE_SALARY,
+    SSS_BASE_CONTRIBUTION,
+    SSS_INCREMENT_STEP,
+    SSS_INCREMENT_AMOUNT,
     type ActiveDtr,
     type AttendanceCalendarRange,
     type AttendanceEntry,
@@ -57,7 +62,13 @@ export type DtrSummary = {
     totalDays: number;
     totalWorkedDuration: string;
     regularAmountLabel: string;
+    regularAmount: number;
     overtime: OvertimeSummaryBreakdown;
+    sssContribution: number;
+    sssDeductionLabel: string;
+    sssDeduction: number;
+    netPay: number;
+    netPayLabel: string;
     totalAmountLabel: string;
     entries: DtrSummaryEntry[];
 };
@@ -108,6 +119,14 @@ function buildInitialAttendanceEntries(
             },
         ]),
     );
+}
+
+function initialSssOverride(activeDtr: ActiveDtr | null | undefined): string {
+    if (!activeDtr || !activeDtr.sssDeduction) {
+        return '';
+    }
+
+    return activeDtr.sssDeduction;
 }
 
 function getHolidayAdjustmentLabel(holidayType: HolidayType): string {
@@ -175,6 +194,9 @@ export function useCalculateAttendance(
     const [selectedComputationDayKey, setSelectedComputationDayKey] = useState<
         string | null
     >(null);
+    const [manualSssOverride, setManualSssOverride] = useState<string>(
+        () => initialSssOverride(activeDtr),
+    );
 
     const selectedEmployee =
         employees.find(
@@ -354,6 +376,18 @@ export function useCalculateAttendance(
         selectedEmployee?.dailyRate ?? '',
     );
 
+    const autoSss = sssContribution(
+        selectedEmployee?.monthlyRate ?? '',
+    );
+    const manualSss = manualSssOverride.trim() !== ''
+        ? Number(manualSssOverride)
+        : NaN;
+    const sssDeduction = Number.isFinite(manualSss)
+        ? manualSss
+        : autoSss;
+    const grossTotal = regularAmountTotal + overtimeSummary.totalAmount;
+    const netPay = Math.max(0, grossTotal - sssDeduction);
+
     const dtrSummary: DtrSummary = {
         employeeName: selectedEmployee?.fullName ?? '',
         monthLabel: selectedMonthLabel,
@@ -362,10 +396,14 @@ export function useCalculateAttendance(
         totalDays: summaryEntryData.length,
         totalWorkedDuration: formatWorkedDuration(totalWorkedMinutes),
         regularAmountLabel: formatRateAmount(regularAmountTotal),
+        regularAmount: regularAmountTotal,
         overtime: overtimeSummary,
-        totalAmountLabel: formatRateAmount(
-            regularAmountTotal + overtimeSummary.totalAmount,
-        ),
+        sssContribution: autoSss,
+        sssDeduction,
+        sssDeductionLabel: formatRateAmount(sssDeduction),
+        netPay,
+        netPayLabel: formatRateAmount(netPay),
+        totalAmountLabel: formatRateAmount(grossTotal),
         entries: summaryEntryData.map((entry) => ({
             key: entry.key,
             label: entry.label,
@@ -565,6 +603,7 @@ export function useCalculateAttendance(
 
         setSelectedEmployeeId(value);
         setCurrentPage(1);
+        setManualSssOverride('');
         resetReviewState();
     };
 
@@ -636,6 +675,7 @@ export function useCalculateAttendance(
                 month: Number(selectedMonth),
                 year: Number(selectedYear),
                 calendar_range: selectedCalendarRange,
+                sss_deduction: dtrSummary.sssDeduction,
                 ...(isEditingFromSummary ? { source: 'summary' } : {}),
                 entries: summaryEntryData.map((entry) => ({
                     date: entry.key,
@@ -676,6 +716,7 @@ export function useCalculateAttendance(
         isRateComputationDialogOpen: selectedRateComputation !== null,
         isSubmittingDtr,
         isSummaryDialogOpen,
+        manualSssOverride,
         monthDays,
         openRateComputation,
         openSummaryDialog,
@@ -689,6 +730,7 @@ export function useCalculateAttendance(
         selectedPeriodLabel,
         selectedRateComputation,
         selectedYear,
+        setManualSssOverride,
         startIndex,
         totalPages,
         updateAttendanceEntry,

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'total_worked_minutes',
     'total_overtime_minutes',
     'total_overtime_amount',
+    'sss_deduction',
     'total_amount',
 ])]
 class Dtr extends Model
@@ -27,6 +28,7 @@ class Dtr extends Model
     {
         return [
             'total_overtime_amount' => 'decimal:2',
+            'sss_deduction' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
     }

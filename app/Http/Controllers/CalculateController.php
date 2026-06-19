@@ -27,6 +27,28 @@ class CalculateController extends Controller
 
     private const OVERTIME_PREMIUM_RATE = 0.25;
 
+    private const SSS_BASE_SALARY = 5250;
+
+    private const SSS_BASE_CONTRIBUTION = 250;
+
+    private const SSS_INCREMENT_STEP = 500;
+
+    private const SSS_INCREMENT_AMOUNT = 25;
+
+    public static function sssContribution(float|string|null $monthlyRate): float
+    {
+        $salary = is_numeric($monthlyRate) ? (float) $monthlyRate : 0;
+
+        if ($salary === 0.0) {
+            return 0.0;
+        }
+
+        $excess = max(0, $salary - self::SSS_BASE_SALARY);
+        $steps = (int) floor($excess / self::SSS_INCREMENT_STEP);
+
+        return (float) (self::SSS_BASE_CONTRIBUTION + ($steps + 1) * self::SSS_INCREMENT_AMOUNT);
+    }
+
     public function index(Request $request): Response
     {
         $selectedEmployeeId = $request->integer('employee') ?: null;
@@ -52,6 +74,9 @@ class CalculateController extends Controller
                         $employee->last_name,
                     ])->filter()->implode(' '),
                     'dailyRate' => $this->resolvedDailyRate($employee),
+                    'monthlyRate' => $employee->monthly_rate !== null
+                        ? (string) $employee->monthly_rate
+                        : '',
                     'workDays' => collect($schedule)
                         ->pluck('day')
                         ->unique()
@@ -90,7 +115,11 @@ class CalculateController extends Controller
             (string) ($validated['calendar_range'] ?? 'wholeMonth'),
         );
 
-        DB::transaction(function () use ($calendarRange, $employee, $month, $request, $validated, $year): void {
+        $sssDeduction = is_numeric($validated['sss_deduction'] ?? null)
+            ? (float) $validated['sss_deduction']
+            : 0.0;
+
+        DB::transaction(function () use ($calendarRange, $employee, $month, $request, $sssDeduction, $validated, $year): void {
             Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
             $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
@@ -233,8 +262,9 @@ class CalculateController extends Controller
                 'total_worked_minutes' => (int) $allEntryTotals->sum('worked_minutes'),
                 'total_overtime_minutes' => $totalOvertimeMinutes,
                 'total_overtime_amount' => $this->formatRate($totalOvertimeAmount),
+                'sss_deduction' => $this->formatRate($sssDeduction),
                 'total_amount' => $this->formatRate(
-                    $regularAmount + $totalOvertimeAmount,
+                    max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction),
                 ),
             ]);
             $dtr->save();
@@ -325,6 +355,9 @@ class CalculateController extends Controller
             'employeeId' => $dtr->employee_id,
             'month' => $period['month'],
             'year' => $period['year'],
+            'sssDeduction' => $dtr->sss_deduction !== null
+                ? (string) $dtr->sss_deduction
+                : '',
             'entries' => $dtr->entries
                 ->map(fn ($entry) => [
                     'date' => $entry->work_date->toDateString(),

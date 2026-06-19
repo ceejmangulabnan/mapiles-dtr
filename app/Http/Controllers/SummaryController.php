@@ -47,6 +47,7 @@ class SummaryController extends Controller
                     'dailyRateBasis' => $this->resolvedDailyRateBasis($dtr),
                     'totalOvertimeMinutes' => (int) $dtr->total_overtime_minutes,
                     'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
+                    'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                     'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->toIso8601String(),
                     'entries' => $dtr->entries->map(function ($entry): array {
