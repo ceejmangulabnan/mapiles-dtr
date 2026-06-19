@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dtr;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -64,6 +66,62 @@ class SummaryController extends Controller
                     })->values()->all(),
                 ];
             })->values()->all(),
+        ]);
+    }
+
+    public function export(Dtr $dtr): HttpResponse
+    {
+        $dtr->load(['employee', 'entries' => fn ($query) => $query->orderBy('work_date')]);
+
+        $periodDate = $this->resolvedPeriodDate($dtr);
+        $month = (int) $periodDate->month;
+        $year = (int) $periodDate->year;
+        $monthLabel = $periodDate->format('F');
+        $employeeName = $dtr->employee?->first_name !== null
+            ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
+            : 'Unknown employee';
+        $regularAmount = $this->resolvedRegularAmount($dtr);
+        $dailyRateBasis = $this->resolvedDailyRateBasis($dtr);
+        $hasOvertime = (int) $dtr->total_overtime_minutes > 0;
+
+        $filename = sprintf(
+            'dtr-%s-%s-%s.pdf',
+            preg_replace('/[^a-z0-9]+/', '-', strtolower($employeeName)),
+            $year,
+            str_pad((string) $month, 2, '0', STR_PAD_LEFT),
+        );
+
+        $pdf = Pdf::loadView('pdf.dtr-summary', [
+            'employeeName' => $employeeName,
+            'monthLabel' => $monthLabel,
+            'year' => $year,
+            'totalDays' => $dtr->total_days,
+            'totalWorkedMinutes' => $dtr->total_worked_minutes,
+            'regularAmount' => $regularAmount,
+            'dailyRateBasis' => $dailyRateBasis,
+            'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->toISOString(),
+            'totalOvertimeMinutes' => (int) $dtr->total_overtime_minutes,
+            'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
+            'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
+            'entries' => $dtr->entries->map(function ($entry): array {
+                $workDate = Carbon::parse($entry->work_date);
+                return [
+                    'date' => $workDate->toDateString(),
+                    'label' => $workDate->format('M j'),
+                    'weekday' => $workDate->format('l'),
+                    'timeIn' => $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '',
+                    'timeOut' => $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '',
+                    'holidayType' => (string) $entry->holiday_type,
+                    'workedMinutes' => (int) $entry->worked_minutes,
+                    'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
+                    'rate' => $entry->rate !== null ? (string) $entry->rate : '',
+                ];
+            })->values()->all(),
+        ])->setPaper('a4', 'portrait');
+
+        return new HttpResponse($pdf->stream($filename), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 

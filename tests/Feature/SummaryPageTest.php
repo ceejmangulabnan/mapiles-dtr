@@ -107,3 +107,62 @@ test('authenticated users can delete confirmed dtrs from summary', function () {
     expect(Dtr::query()->count())->toBe(0)
         ->and(DtrEntry::query()->count())->toBe(0);
 });
+
+test('export dtr as pdf requires authentication', function () {
+    $employee = Employee::factory()->create();
+    $dtr = Dtr::query()->create([
+        'employee_id' => $employee->id,
+        'total_days' => 1,
+        'total_worked_minutes' => 480,
+        'total_amount' => '800.00',
+    ]);
+
+    $this->get(route('summary.export', $dtr))
+        ->assertRedirect(route('login'));
+});
+
+test('authenticated users can export a dtr as pdf', function () {
+    $user = User::factory()->create();
+    $employee = Employee::factory()->create([
+        'first_name' => 'Ana',
+        'middle_name' => 'Marie',
+        'last_name' => 'Lopez',
+    ]);
+
+    $dtr = Dtr::query()->create([
+        'employee_id' => $employee->id,
+        'confirmed_by' => $user->id,
+        'total_days' => 2,
+        'total_worked_minutes' => 900,
+        'total_overtime_minutes' => 120,
+        'total_overtime_amount' => '250.00',
+        'total_amount' => '2650.00',
+    ]);
+
+    $dtr->entries()->createMany([
+        [
+            'work_date' => '2026-03-02',
+            'time_in' => '09:00:00',
+            'time_out' => '18:00:00',
+            'holiday_type' => 'none',
+            'worked_minutes' => 480,
+            'base_rate' => '800.00',
+            'rate' => '800.00',
+        ],
+        [
+            'work_date' => '2026-03-07',
+            'time_in' => '09:00:00',
+            'time_out' => '17:00:00',
+            'holiday_type' => 'regularHoliday',
+            'worked_minutes' => 420,
+            'base_rate' => '800.00',
+            'rate' => '1600.00',
+        ],
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('summary.export', $dtr))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertHeader('Content-Disposition', 'attachment; filename="dtr-ana-marie-lopez-2026-03.pdf"');
+});

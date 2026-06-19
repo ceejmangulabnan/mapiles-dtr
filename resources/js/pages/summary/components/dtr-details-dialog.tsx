@@ -5,13 +5,14 @@
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
     buildOvertimeSummary,
     formatRateAmount,
     formatWorkedDuration,
     getHolidayLabel,
 } from '../../calculate/helpers/calculate-page';
-import { formatConfirmedAt, type SummaryDtr } from '../helpers/summary-page';
+import { dtrExportPath, formatConfirmedAt, type SummaryDtr } from '../helpers/summary-page';
 
 type DtrDetailsDialogProps = {
     dtr: SummaryDtr | null;
@@ -28,6 +29,7 @@ export default function DtrDetailsDialog({
     dtr,
     open,
     onOpenChange,
+    onExport,
 }: DtrDetailsDialogProps) {
     if (!dtr) {
         return null;
@@ -48,6 +50,12 @@ export default function DtrDetailsDialog({
                         DTR.
                     </DialogDescription>
                 </DialogHeader>
+
+                <div className="flex flex-wrap gap-2">
+                    <Button type="button" size="sm" variant="outline" onClick={() => onExport(dtr)}>
+                        Download PDF
+                    </Button>
+                </div>
 
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
                     <div className="rounded-lg border p-4">

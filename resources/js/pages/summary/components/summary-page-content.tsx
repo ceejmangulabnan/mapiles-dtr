@@ -34,7 +34,7 @@ export default function SummaryPageContent({
             <div className="flex flex-1 flex-col gap-6 p-5 md:p-6">
                 <Heading
                     title="Summary"
-                    description="Review previously confirmed DTRs, reopen them for editing, print them, export them as CSV, or remove them."
+                    description="Review previously confirmed DTRs, reopen them for editing, download them as PDF, or remove them."
                 />
 
                 {successMessage && (
@@ -156,13 +156,13 @@ export default function SummaryPageContent({
                                                                             isDeleting
                                                                         }
                                                                         onClick={() =>
-                                                                            history.exportDtrAsCsv(
+                                                                            history.exportDtrAsPdf(
                                                                                 dtr,
                                                                             )
                                                                         }
                                                                     >
-                                                                        Export
-                                                                        CSV
+                                                                        Download
+                                                                        PDF
                                                                     </Button>
                                                                     <Button
                                                                         type="button"
@@ -280,12 +280,12 @@ export default function SummaryPageContent({
                                                         variant="outline"
                                                         disabled={isDeleting}
                                                         onClick={() =>
-                                                            history.exportDtrAsCsv(
+                                                            history.exportDtrAsPdf(
                                                                 dtr,
                                                             )
                                                         }
                                                     >
-                                                        Export CSV
+                                                        Download PDF
                                                     </Button>
                                                     <Button
                                                         type="button"

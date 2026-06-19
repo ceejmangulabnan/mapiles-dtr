@@ -45,6 +45,7 @@ export const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export const dtrPath = (dtrId: number) => `/summary/${dtrId}`;
+export const dtrExportPath = (dtrId: number) => `/summary/${dtrId}/export`;
 
 export function formatConfirmedAt(value: string | null): string {
     if (!value) {

@@ -1,5 +1,4 @@
 ﻿import { router } from '@inertiajs/react';
-import Papa from 'papaparse';
 import { useState } from 'react';
 import { index as calculateIndex } from '@/routes/calculate';
 import {
@@ -9,6 +8,7 @@ import {
     getHolidayLabel,
 } from '../../calculate/helpers/calculate-page';
 import {
+    dtrExportPath,
     dtrPath,
     formatConfirmedAt,
     type SummaryDtr,
@@ -21,18 +21,6 @@ function escapeHtml(value: string): string {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
-}
-
-function downloadCsv(filename: string, csv: string) {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
 }
 
 export function useDtrHistory(dtrs: SummaryDtr[]) {
@@ -106,27 +94,8 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
         });
     };
 
-    const exportDtrAsCsv = (dtr: SummaryDtr) => {
-        const rows = dtr.entries.map((entry) => ({
-            Date: entry.date,
-            Weekday: entry.weekday,
-            'Time In': entry.timeIn || '--',
-            'Time Out': entry.timeOut || '--',
-            Holiday: getHolidayLabel(entry.holidayType),
-            'Hours Worked': formatWorkedDuration(entry.workedMinutes),
-            'Base Rate': entry.baseRate || '--',
-            Rate: entry.rate || '--',
-        }));
-
-        const csv = Papa.unparse(rows);
-        const filename = `dtr-${dtr.employeeName
-            .toLowerCase()
-            .replaceAll(
-                /[^a-z0-9]+/g,
-                '-',
-            )}-${dtr.year}-${String(dtr.month).padStart(2, '0')}.csv`;
-
-        downloadCsv(filename, csv);
+    const exportDtrAsPdf = (dtr: SummaryDtr) => {
+        window.open(dtrExportPath(dtr.id), '_blank');
     };
 
     const printDtr = (dtr: SummaryDtr) => {
@@ -234,7 +203,7 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     return {
         deleteDtr,
         deletingDtrId,
-        exportDtrAsCsv,
+        exportDtrAsPdf,
         handleDetailsDialogChange,
         isDetailsDialogOpen,
         openDtr,
