@@ -5,7 +5,6 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\SummaryController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
 Route::redirect('/', '/login')->name('home');
 
@@ -23,4 +22,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
-

@@ -106,6 +106,7 @@ class SummaryController extends Controller
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
             'entries' => $dtr->entries->map(function ($entry): array {
                 $workDate = Carbon::parse($entry->work_date);
+
                 return [
                     'date' => $workDate->toDateString(),
                     'label' => $workDate->format('M j'),

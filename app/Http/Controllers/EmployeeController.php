@@ -11,7 +11,9 @@ use Inertia\Response;
 class EmployeeController extends Controller
 {
     private const FIXED_GRACE_PERIOD_MINUTES = 5;
+
     private const WORK_DAYS_PER_MONTH = 26;
+
     private const WORK_HOURS_PER_DAY = 8;
 
     public function index(): Response
@@ -21,7 +23,7 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request): RedirectResponse
     {
-        $this->saveEmployee(new Employee(), $request->validated());
+        $this->saveEmployee(new Employee, $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee added successfully.');
     }

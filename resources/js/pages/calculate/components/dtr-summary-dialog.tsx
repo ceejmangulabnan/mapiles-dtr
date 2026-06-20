@@ -21,7 +21,9 @@ import {
     SSS_INCREMENT_STEP,
     SSS_INCREMENT_AMOUNT,
     formatRateAmount,
+    getAttendanceCalendarRangeLabel,
     sssContribution,
+    type AttendanceCalendarRange,
 } from '../helpers/calculate-page';
 import type { DtrSummary } from '../hooks/use-calculate-attendance';
 
@@ -34,6 +36,7 @@ type DtrSummaryDialogProps = {
     sssOverride: string;
     onSssOverrideChange: (value: string) => void;
     monthlyRate: string;
+    calendarRange: AttendanceCalendarRange;
 };
 
 export default function DtrSummaryDialog({
@@ -45,6 +48,7 @@ export default function DtrSummaryDialog({
     sssOverride,
     onSssOverrideChange,
     monthlyRate,
+    calendarRange,
 }: DtrSummaryDialogProps) {
     const hasOvertime = summary.overtime.totalMinutes > 0;
     const hasMonthlyRate = monthlyRate.trim() !== '' && Number.isFinite(Number(monthlyRate));
@@ -54,13 +58,27 @@ export default function DtrSummaryDialog({
         if (!Number.isFinite(salary) || salary === 0) {
             return 'No monthly rate set for this employee.';
         }
+
+        const isSemiMonthly = calendarRange !== 'wholeMonth';
+        const rangeLabel = isSemiMonthly
+            ? getAttendanceCalendarRangeLabel(calendarRange)
+            : '';
+
+        let formula: string;
         if (salary < SSS_BASE_SALARY) {
-            return `Monthly Rate: ${formatRateAmount(salary)}. Below ₱${SSS_BASE_SALARY.toLocaleString()}, flat rate of ${formatRateAmount(SSS_BASE_CONTRIBUTION)}.`;
+            formula = `Monthly Rate: ${formatRateAmount(salary)}. Below ₱${SSS_BASE_SALARY.toLocaleString()}, flat rate of ${formatRateAmount(SSS_BASE_CONTRIBUTION)}.`;
+        } else {
+            const excess = Math.max(0, salary - SSS_BASE_SALARY);
+            const steps = Math.floor(excess / SSS_INCREMENT_STEP);
+            const total = sssContribution(monthlyRate);
+            formula = `Monthly Rate: ${formatRateAmount(salary)}. Base: ${formatRateAmount(SSS_BASE_CONTRIBUTION)} + ${steps + 1} step${steps + 1 > 1 ? 's' : ''} × ${formatRateAmount(SSS_INCREMENT_AMOUNT)} = ${formatRateAmount(total)}.`;
         }
-        const excess = Math.max(0, salary - SSS_BASE_SALARY);
-        const steps = Math.floor(excess / SSS_INCREMENT_STEP);
-        const total = sssContribution(monthlyRate);
-        return `Monthly Rate: ${formatRateAmount(salary)}. Base: ${formatRateAmount(SSS_BASE_CONTRIBUTION)} + ${steps + 1} step${steps + 1 > 1 ? 's' : ''} × ${formatRateAmount(SSS_INCREMENT_AMOUNT)} = ${formatRateAmount(total)}.`;
+
+        if (isSemiMonthly) {
+            return `${formula} Divided by 2 for ${rangeLabel} period: ${formatRateAmount(summary.sssContribution)}.`;
+        }
+
+        return formula;
     }
 
     return (

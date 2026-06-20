@@ -376,9 +376,12 @@ export function useCalculateAttendance(
         selectedEmployee?.dailyRate ?? '',
     );
 
-    const autoSss = sssContribution(
+    const fullMonthlySss = sssContribution(
         selectedEmployee?.monthlyRate ?? '',
     );
+    const autoSss = selectedCalendarRange !== 'wholeMonth'
+        ? fullMonthlySss / 2
+        : fullMonthlySss;
     const manualSss = manualSssOverride.trim() !== ''
         ? Number(manualSssOverride)
         : NaN;
