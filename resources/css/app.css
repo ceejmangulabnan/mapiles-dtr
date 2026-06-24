@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@plugin "daisyui";
-
 @import 'tw-animate-css';
 
 @source '../views';
