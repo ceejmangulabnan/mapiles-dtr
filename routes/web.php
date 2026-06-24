@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('summary', [SummaryController::class, 'index'])->name('summary.index');
     Route::get('summary/{dtr}/export', [SummaryController::class, 'export'])->name('summary.export');
     Route::get('ranking', [RankingController::class, 'index'])->name('ranking.index');
+    Route::get('ranking/pdf', [RankingController::class, 'exportPdf'])->name('ranking.export-pdf');
     Route::delete('summary/{dtr}', [SummaryController::class, 'destroy'])->name('summary.destroy');
 });
 

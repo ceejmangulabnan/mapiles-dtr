@@ -1,6 +1,5 @@
 ﻿import { Head } from '@inertiajs/react';
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -9,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import RowActionsDropdown from './row-actions-dropdown';
 import {
     formatRateAmount,
     formatWorkedDuration,
@@ -133,70 +133,35 @@ export default function SummaryPageContent({
                                                                 )}
                                                             </td>
                                                             <td className="px-3 py-3">
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        disabled={
-                                                                            isDeleting
-                                                                        }
-                                                                        onClick={() =>
-                                                                            history.openDtr(
-                                                                                dtr,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        View
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        disabled={
-                                                                            isDeleting
-                                                                        }
-                                                                        onClick={() =>
-                                                                            history.exportDtrAsPdf(
-                                                                                dtr,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        Download
-                                                                        PDF
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        disabled={
-                                                                            isDeleting
-                                                                        }
-                                                                        onClick={() =>
-                                                                            history.reopenDtr(
-                                                                                dtr,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        Edit
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        variant="destructive"
-                                                                        disabled={
-                                                                            isDeleting
-                                                                        }
-                                                                        onClick={() =>
-                                                                            history.deleteDtr(
-                                                                                dtr,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        {isDeleting
-                                                                            ? 'Deleting...'
-                                                                            : 'Delete'}
-                                                                    </Button>
-                                                                </div>
+                                                                <RowActionsDropdown
+                                                                    dtr={dtr}
+                                                                    isDeleting={isDeleting}
+                                                                    onView={() =>
+                                                                        history.openDtr(
+                                                                            dtr,
+                                                                        )
+                                                                    }
+                                                                    onExportPdf={() =>
+                                                                        history.exportDtrAsPdf(
+                                                                            dtr,
+                                                                        )
+                                                                    }
+                                                                    onExportCsv={() =>
+                                                                        history.exportDtrAsCsv(
+                                                                            dtr,
+                                                                        )
+                                                                    }
+                                                                    onEdit={() =>
+                                                                        history.reopenDtr(
+                                                                            dtr,
+                                                                        )
+                                                                    }
+                                                                    onDelete={() =>
+                                                                        history.deleteDtr(
+                                                                            dtr,
+                                                                        )
+                                                                    }
+                                                                />
                                                             </td>
                                                         </tr>
                                                     );
@@ -263,58 +228,30 @@ export default function SummaryPageContent({
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-4 flex flex-wrap gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        disabled={isDeleting}
-                                                        onClick={() =>
+                                                <div className="mt-4 flex justify-end">
+                                                    <RowActionsDropdown
+                                                        dtr={dtr}
+                                                        isDeleting={isDeleting}
+                                                        onView={() =>
                                                             history.openDtr(dtr)
                                                         }
-                                                    >
-                                                        View
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        disabled={isDeleting}
-                                                        onClick={() =>
+                                                        onExportPdf={() =>
                                                             history.exportDtrAsPdf(
                                                                 dtr,
                                                             )
                                                         }
-                                                    >
-                                                        Download PDF
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        disabled={isDeleting}
-                                                        onClick={() =>
-                                                            history.reopenDtr(
+                                                        onExportCsv={() =>
+                                                            history.exportDtrAsCsv(
                                                                 dtr,
                                                             )
                                                         }
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        disabled={isDeleting}
-                                                        onClick={() =>
-                                                            history.deleteDtr(
-                                                                dtr,
-                                                            )
+                                                        onEdit={() =>
+                                                            history.reopenDtr(dtr)
                                                         }
-                                                    >
-                                                        {isDeleting
-                                                            ? 'Deleting...'
-                                                            : 'Delete'}
-                                                    </Button>
+                                                        onDelete={() =>
+                                                            history.deleteDtr(dtr)
+                                                        }
+                                                    />
                                                 </div>
                                             </div>
                                         );
@@ -330,7 +267,8 @@ export default function SummaryPageContent({
                     deletingId={history.deletingDtrId}
                     open={history.isDetailsDialogOpen}
                     onDelete={history.deleteDtr}
-                    onExport={history.exportDtrAsPdf}
+                    onExportPdf={history.exportDtrAsPdf}
+                    onExportCsv={history.exportDtrAsCsv}
                     onOpenChange={history.handleDetailsDialogChange}
                     onPrint={history.printDtr}
                     onReopen={history.reopenDtr}

@@ -1,4 +1,5 @@
-﻿import { Button } from '@/components/ui/button';
+﻿import { Download, FileDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -7,12 +8,18 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     buildOvertimeSummary,
     formatRateAmount,
     formatWorkedDuration,
     getHolidayLabel,
 } from '../../calculate/helpers/calculate-page';
-import { dtrExportPath, formatConfirmedAt  } from '../helpers/summary-page';
+import { formatConfirmedAt  } from '../helpers/summary-page';
 import type {SummaryDtr} from '../helpers/summary-page';
 
 type DtrDetailsDialogProps = {
@@ -21,7 +28,8 @@ type DtrDetailsDialogProps = {
     open: boolean;
     onDelete: (dtr: SummaryDtr) => void;
     onOpenChange: (open: boolean) => void;
-    onExport: (dtr: SummaryDtr) => void;
+    onExportPdf: (dtr: SummaryDtr) => void;
+    onExportCsv: (dtr: SummaryDtr) => void;
     onPrint: (dtr: SummaryDtr) => void;
     onReopen: (dtr: SummaryDtr) => void;
 };
@@ -30,7 +38,8 @@ export default function DtrDetailsDialog({
     dtr,
     open,
     onOpenChange,
-    onExport,
+    onExportCsv,
+    onExportPdf,
 }: DtrDetailsDialogProps) {
     if (!dtr) {
         return null;
@@ -54,9 +63,24 @@ export default function DtrDetailsDialog({
                 </DialogHeader>
 
                 <div className="flex flex-wrap gap-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => onExport(dtr)}>
-                        Download PDF
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button type="button" size="sm" variant="outline">
+                                <Download className="h-4 w-4" />
+                                Export
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            <DropdownMenuItem onClick={() => onExportPdf(dtr)}>
+                                <FileDown className="h-4 w-4" />
+                                Export as PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onExportCsv(dtr)}>
+                                <FileDown className="h-4 w-4" />
+                                Export as CSV
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">

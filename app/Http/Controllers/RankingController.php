@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Dtr;
 use App\Models\DtrEntry;
 use App\Models\Employee;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,6 +17,49 @@ use Inertia\Response;
 class RankingController extends Controller
 {
     public function index(Request $request): Response
+    {
+        $prepared = $this->prepareRankingData($request);
+
+        return Inertia::render('ranking/index', [
+            'initialSelection' => [
+                'month' => $prepared['month'],
+                'year' => $prepared['year'],
+                'calendarRange' => $prepared['calendarRange'],
+            ],
+            'yearOptions' => $prepared['yearOptions'],
+            'rankings' => $prepared['rankings'],
+        ]);
+    }
+
+    public function exportPdf(Request $request): HttpResponse
+    {
+        $prepared = $this->prepareRankingData($request);
+        $periodLabel = $this->rankingPeriodLabel(
+            $prepared['month'],
+            $prepared['year'],
+            $prepared['calendarRange'],
+        );
+        $filename = sprintf(
+            'punctuality-ranking-%s-%s.pdf',
+            $prepared['year'],
+            str_pad((string) $prepared['month'], 2, '0', STR_PAD_LEFT),
+        );
+
+        $pdf = Pdf::loadView('pdf.ranking-summary', [
+            'periodLabel' => $periodLabel,
+            'rankings' => $prepared['rankings'],
+        ])->setPaper('a4', 'landscape');
+
+        return new HttpResponse($pdf->stream($filename), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @return array{month: int, year: int, calendarRange: string, yearOptions: int[], rankings: array}
+     */
+    protected function prepareRankingData(Request $request): array
     {
         $selectedMonth = $request->integer('month') ?: (int) now()->month;
         $selectedYear = $request->integer('year') ?: (int) now()->year;
@@ -46,15 +91,13 @@ class RankingController extends Controller
             })
             ->get();
 
-        return Inertia::render('ranking/index', [
-            'initialSelection' => [
-                'month' => $selectedMonth,
-                'year' => $selectedYear,
-                'calendarRange' => $selectedCalendarRange,
-            ],
+        return [
+            'month' => $selectedMonth,
+            'year' => $selectedYear,
+            'calendarRange' => $selectedCalendarRange,
             'yearOptions' => $yearOptions,
             'rankings' => $this->buildRankings($dtrs),
-        ]);
+        ];
     }
 
     protected function buildRankings(Collection $dtrs): array
@@ -169,6 +212,18 @@ class RankingController extends Controller
         ])->filter()->implode(' ');
 
         return $name !== '' ? $name : 'Unknown employee';
+    }
+
+    protected function rankingPeriodLabel(int $month, int $year, string $calendarRange): string
+    {
+        $monthLabel = Carbon::create($year, $month, 1)->format('F');
+        $rangeLabel = match ($calendarRange) {
+            'firstTwoWeeks' => 'First two weeks',
+            'lastTwoWeeks' => 'Last two weeks',
+            default => 'Whole month',
+        };
+
+        return "{$monthLabel} {$year} ({$rangeLabel})";
     }
 
     protected function resolvedCalendarRange(string $value): string

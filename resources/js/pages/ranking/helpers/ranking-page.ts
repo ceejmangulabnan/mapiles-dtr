@@ -34,6 +34,22 @@ export const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+export const rankingExportPdfPath = (
+    month: number,
+    year: number,
+    calendarRange: AttendanceCalendarRange,
+) => {
+    const params: Record<string, string | number> = { month, year };
+
+    if (calendarRange !== 'wholeMonth') {
+        params.calendar_range = calendarRange;
+    }
+
+    return `/ranking/pdf?${new URLSearchParams(
+        Object.entries(params).map(([key, value]) => [key, String(value)]),
+    ).toString()}`;
+};
+
 export function getRankingPeriodLabel(
     month: number,
     year: number,

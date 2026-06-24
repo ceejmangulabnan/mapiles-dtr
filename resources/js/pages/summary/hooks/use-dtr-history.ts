@@ -1,4 +1,5 @@
 ﻿import { router } from '@inertiajs/react';
+import Papa from 'papaparse';
 import { useState } from 'react';
 import { index as calculateIndex } from '@/routes/calculate';
 import {
@@ -14,6 +15,18 @@ import {
     
 } from '../helpers/summary-page';
 import type {SummaryDtr} from '../helpers/summary-page';
+
+function downloadCsv(filename: string, csv: string) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+}
 
 function escapeHtml(value: string): string {
     return value
@@ -97,6 +110,42 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
 
     const exportDtrAsPdf = (dtr: SummaryDtr) => {
         window.open(dtrExportPath(dtr.id), '_blank');
+    };
+
+    const exportDtrAsCsv = (dtr: SummaryDtr) => {
+        const filename = `dtr-${dtr.employeeName.replace(/\s+/g, '-').toLowerCase()}-${dtr.year}-${String(dtr.month).padStart(2, '0')}.csv`;
+
+        const metaRows = [
+            { key: 'Employee', value: dtr.employeeName },
+            { key: 'Period', value: `${dtr.monthLabel} ${dtr.year}` },
+        ];
+
+        const summaryRows = [{
+            'Total Days': dtr.totalDays,
+            'Total Hours': formatWorkedDuration(dtr.totalWorkedMinutes),
+            'Regular Pay': formatRateAmount(dtr.regularAmount),
+            'Overtime Pay': formatRateAmount(dtr.totalOvertimeAmount),
+            'SSS Deduction': formatRateAmount(dtr.sssDeduction),
+            'Pag-IBIG Deduction': formatRateAmount(dtr.pagibigDeduction),
+            'Net Pay': formatRateAmount(dtr.totalAmount),
+        }];
+
+        const entryRows = dtr.entries.map((entry) => ({
+            Date: entry.label,
+            Day: entry.weekday,
+            'Time In': entry.timeIn || '--',
+            'Time Out': entry.timeOut || '--',
+            Holiday: getHolidayLabel(entry.holidayType),
+            Hours: formatWorkedDuration(entry.workedMinutes),
+            Rate: formatRateAmount(entry.rate || '0'),
+        }));
+
+        const metaCsv = Papa.unparse(metaRows);
+        const summaryCsv = Papa.unparse(summaryRows);
+        const entriesCsv = Papa.unparse(entryRows);
+        const csv = `${metaCsv}\n\n${summaryCsv}\n\n${entriesCsv}`;
+
+        downloadCsv(filename, csv);
     };
 
     const printDtr = (dtr: SummaryDtr) => {
@@ -212,6 +261,7 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     return {
         deleteDtr,
         deletingDtrId,
+        exportDtrAsCsv,
         exportDtrAsPdf,
         handleDetailsDialogChange,
         isDetailsDialogOpen,
