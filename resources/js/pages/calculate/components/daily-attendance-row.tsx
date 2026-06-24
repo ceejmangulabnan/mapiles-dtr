@@ -53,7 +53,7 @@ export default function DailyAttendanceRow({
                 </div>
             </div>
 
-            <div className="flex items-start space-x-3 rounded-lg border bg-muted/20 px-3 py-3">
+            <div className="flex items-center space-x-3 rounded-lg border bg-muted/20 px-3 py-3">
                 <Checkbox
                     id={`absent-${day.key}`}
                     checked={entry.isAbsent}
