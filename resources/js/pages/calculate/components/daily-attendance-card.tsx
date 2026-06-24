@@ -83,11 +83,11 @@ export default function DailyAttendanceCard({
             <CardHeader>
                 <CardTitle>Daily attendance input</CardTitle>
                 <CardDescription>
-                    Choose the calendar range, then review the prefilled schedule
-                    and computed rates for {selectedPeriodLabel}. Late minutes
-                    after the grace period deduct PHP 1.00 each, while arrivals
-                    that are 3 hours or more after the scheduled start become
-                    half-day rates.
+                    Choose the calendar range, then review the prefilled
+                    schedule and computed rates for {selectedPeriodLabel}. Late
+                    minutes after the grace period deduct PHP 1.00 each, while
+                    arrivals that are 3 hours or more after the scheduled start
+                    become half-day rates.
                 </CardDescription>
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
@@ -109,14 +109,16 @@ export default function DailyAttendanceCard({
                                 <SelectValue placeholder="Select a calendar range" />
                             </SelectTrigger>
                             <SelectContent>
-                                {attendanceCalendarRangeOptions.map((option) => (
-                                    <SelectItem
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
+                                {attendanceCalendarRangeOptions.map(
+                                    (option) => (
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </SelectItem>
+                                    ),
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
@@ -175,11 +177,12 @@ export default function DailyAttendanceCard({
             <CardContent className="space-y-4">
                 {monthDays.length === 0 ? (
                     <div className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-                        This employee has no scheduled workdays for {selectedPeriodLabel}.
+                        This employee has no scheduled workdays for{' '}
+                        {selectedPeriodLabel}.
                     </div>
                 ) : (
                     <>
-                        <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 px-4 py-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/20 px-4 py-3">
                             <p className="text-sm text-muted-foreground">
                                 Showing scheduled days {startIndex + 1}-
                                 {Math.min(
@@ -203,6 +206,10 @@ export default function DailyAttendanceCard({
                                     Previous
                                 </Button>
 
+                                <span className="text-sm text-muted-foreground sm:hidden">
+                                    {visiblePage}/{totalPages}
+                                </span>
+
                                 {pageNumbers.map((pageNumber) => (
                                     <Button
                                         key={pageNumber}
@@ -213,6 +220,7 @@ export default function DailyAttendanceCard({
                                                 : 'outline'
                                         }
                                         size="sm"
+                                        className="hidden sm:inline-flex"
                                         onClick={() => onPageChange(pageNumber)}
                                     >
                                         {pageNumber}
@@ -231,7 +239,7 @@ export default function DailyAttendanceCard({
                             </div>
                         </div>
 
-                        <div className="hidden md:block">
+                        <div className="hidden lg:block">
                             <div className="overflow-x-auto rounded-lg border">
                                 <table className="min-w-full text-sm">
                                     <thead className="bg-muted/30 text-left text-muted-foreground">
@@ -284,7 +292,7 @@ export default function DailyAttendanceCard({
                             </div>
                         </div>
 
-                        <div className="space-y-3 md:hidden">
+                        <div className="space-y-3 lg:hidden">
                             {paginatedDays.map((day) => (
                                 <DailyAttendanceRow
                                     key={day.key}
