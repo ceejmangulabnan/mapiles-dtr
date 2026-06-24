@@ -15,9 +15,10 @@ import {
 } from '../../calculate/helpers/calculate-page';
 import {
     breadcrumbs,
-    formatConfirmedAt,
-    type SummaryPageProps,
+    formatConfirmedAt
+    
 } from '../helpers/summary-page';
+import type {SummaryPageProps} from '../helpers/summary-page';
 import { useDtrHistory } from '../hooks/use-dtr-history';
 import DtrDetailsDialog from './dtr-details-dialog';
 

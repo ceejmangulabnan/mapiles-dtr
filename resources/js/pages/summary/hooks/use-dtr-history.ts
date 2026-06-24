@@ -10,9 +10,10 @@ import {
 import {
     dtrExportPath,
     dtrPath,
-    formatConfirmedAt,
-    type SummaryDtr,
+    formatConfirmedAt
+    
 } from '../helpers/summary-page';
+import type {SummaryDtr} from '../helpers/summary-page';
 
 function escapeHtml(value: string): string {
     return value

@@ -7,11 +7,12 @@ import {
     defaultEmployeeFormData,
     employeePath,
     employeeToFormData,
-    getDerivedRates,
-    type EmployeeFormData,
-    type EmployeeRow,
-    type ScheduleGroupForm,
+    getDerivedRates
+    
+    
+    
 } from '../helpers/employees-page';
+import type {EmployeeFormData, EmployeeRow, ScheduleGroupForm} from '../helpers/employees-page';
 
 export function useEmployeeDialog() {
     const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false);
@@ -119,6 +120,7 @@ export function useEmployeeDialog() {
         if (editingEmployee) {
             form.put(employeePath(editingEmployee.id), {
                 preserveScroll: true,
+                preserveState: false,
                 onSuccess,
             });
 
@@ -127,6 +129,7 @@ export function useEmployeeDialog() {
 
         form.post(employeesStore.url(), {
             preserveScroll: true,
+            preserveState: false,
             onSuccess,
         });
     };
@@ -138,6 +141,7 @@ export function useEmployeeDialog() {
 
         router.delete(employeePath(employee.id), {
             preserveScroll: true,
+            preserveState: false,
         });
     };
 

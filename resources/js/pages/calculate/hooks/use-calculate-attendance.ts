@@ -29,17 +29,18 @@ import {
     SSS_BASE_SALARY,
     SSS_BASE_CONTRIBUTION,
     SSS_INCREMENT_STEP,
-    SSS_INCREMENT_AMOUNT,
-    type ActiveDtr,
-    type AttendanceCalendarRange,
-    type AttendanceEntry,
-    type AttendanceField,
-    type EmployeeOption,
-    type HolidayType,
-    type InitialSelection,
-    type MonthDay,
-    type OvertimeSummaryBreakdown,
+    SSS_INCREMENT_AMOUNT
+    
+    
+    
+    
+    
+    
+    
+    
+    
 } from '../helpers/calculate-page';
+import type {ActiveDtr, AttendanceCalendarRange, AttendanceEntry, AttendanceField, EmployeeOption, HolidayType, InitialSelection, MonthDay, OvertimeSummaryBreakdown} from '../helpers/calculate-page';
 
 const absentRate = '0.00';
 
@@ -724,7 +725,7 @@ export function useCalculateAttendance(
             },
             {
                 preserveScroll: true,
-                preserveState: true,
+                preserveState: false,
                 onStart: () => setIsSubmittingDtr(true),
                 onSuccess: () => setIsSummaryDialogOpen(false),
                 onFinish: () => setIsSubmittingDtr(false),

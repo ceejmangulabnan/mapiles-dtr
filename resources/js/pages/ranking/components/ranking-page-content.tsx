@@ -22,16 +22,18 @@ import { index as rankingIndex } from '@/routes/ranking';
 import {
     attendanceCalendarRangeOptions,
     getAttendanceCalendarRangeLabel,
-    monthOptions,
-    type AttendanceCalendarRange,
+    monthOptions
+    
 } from '../../calculate/helpers/calculate-page';
+import type {AttendanceCalendarRange} from '../../calculate/helpers/calculate-page';
 import {
     breadcrumbs,
     formatLateMinutes,
     formatPunctualityScore,
-    getRankingPeriodLabel,
-    type RankingPageProps,
+    getRankingPeriodLabel
+    
 } from '../helpers/ranking-page';
+import type {RankingPageProps} from '../helpers/ranking-page';
 
 function downloadCsv(filename: string, csv: string) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

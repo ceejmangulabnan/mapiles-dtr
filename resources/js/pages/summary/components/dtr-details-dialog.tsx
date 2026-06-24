@@ -1,18 +1,19 @@
-﻿import {
+﻿import { Button } from '@/components/ui/button';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import {
     buildOvertimeSummary,
     formatRateAmount,
     formatWorkedDuration,
     getHolidayLabel,
 } from '../../calculate/helpers/calculate-page';
-import { dtrExportPath, formatConfirmedAt, type SummaryDtr } from '../helpers/summary-page';
+import { dtrExportPath, formatConfirmedAt  } from '../helpers/summary-page';
+import type {SummaryDtr} from '../helpers/summary-page';
 
 type DtrDetailsDialogProps = {
     dtr: SummaryDtr | null;
@@ -34,6 +35,7 @@ export default function DtrDetailsDialog({
     if (!dtr) {
         return null;
     }
+
     const overtime = buildOvertimeSummary(
         dtr.totalOvertimeMinutes,
         dtr.dailyRateBasis,

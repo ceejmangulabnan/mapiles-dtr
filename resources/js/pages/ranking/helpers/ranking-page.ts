@@ -1,9 +1,10 @@
 import { index as rankingIndex } from '@/routes/ranking';
 import type { BreadcrumbItem } from '@/types';
 import {
-    getAttendanceCalendarPeriodLabel,
-    type AttendanceCalendarRange,
+    getAttendanceCalendarPeriodLabel
+    
 } from '../../calculate/helpers/calculate-page';
+import type {AttendanceCalendarRange} from '../../calculate/helpers/calculate-page';
 
 export type RankingEntry = {
     rank: number;

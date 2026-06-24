@@ -12,9 +12,10 @@ import AppLayout from '@/layouts/app-layout';
 import {
     breadcrumbs,
     formatDaySet,
-    formatTime,
-    type EmployeesPageProps,
+    formatTime
+    
 } from '../helpers/employees-page';
+import type {EmployeesPageProps} from '../helpers/employees-page';
 import { useEmployeeDialog } from '../hooks/use-employee-dialog';
 import EmployeeDialog from './employee-dialog';
 

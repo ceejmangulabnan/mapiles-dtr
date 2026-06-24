@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -14,7 +15,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
 import {
     PAGIBIG_FIXED_RATE,
     SSS_BASE_SALARY,
@@ -26,9 +26,10 @@ import {
     formatRateAmount,
     getAttendanceCalendarRangeLabel,
     pagibigContribution,
-    sssContribution,
-    type AttendanceCalendarRange,
+    sssContribution
+    
 } from '../helpers/calculate-page';
+import type {AttendanceCalendarRange} from '../helpers/calculate-page';
 import type { DtrSummary } from '../hooks/use-calculate-attendance';
 
 type DtrSummaryDialogProps = {
@@ -67,14 +68,17 @@ export default function DtrSummaryDialog({
             ? getAttendanceCalendarRangeLabel(calendarRange)
             : '';
         const total = pagibigContribution();
+
         if (isSemiMonthly) {
             return `Fixed rate of ${formatRateAmount(total)} per month. Divided by 2 for ${rangeLabel} period: ${formatRateAmount(summary.pagibigContribution)}.`;
         }
+
         return `Fixed rate of ${formatRateAmount(total)} per month.`;
     }
 
     function sssFormulaBreakdown(): string {
         const salary = Number(monthlyRate);
+
         if (!Number.isFinite(salary) || salary === 0) {
             return 'No monthly rate set for this employee.';
         }
@@ -85,6 +89,7 @@ export default function DtrSummaryDialog({
             : '';
 
         let formula: string;
+
         if (salary < SSS_BASE_SALARY) {
             formula = `Monthly Rate: ${formatRateAmount(salary)}. Below ₱${SSS_BASE_SALARY.toLocaleString()}, flat rate of ${formatRateAmount(SSS_BASE_CONTRIBUTION)}.`;
         } else if (salary >= SSS_MAX_SALARY) {
@@ -225,6 +230,7 @@ export default function DtrSummaryDialog({
                                     value={sssOverride}
                                     onChange={(e) => {
                                         const val = e.target.value;
+
                                         if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
                                             onSssOverrideChange(val);
                                         }
@@ -314,6 +320,7 @@ export default function DtrSummaryDialog({
                                     value={pagibigOverride}
                                     onChange={(e) => {
                                         const val = e.target.value;
+
                                         if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
                                             onPagibigOverrideChange(val);
                                         }
