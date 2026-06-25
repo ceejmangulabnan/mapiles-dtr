@@ -7,12 +7,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mapiles_dtr_app
-    restart: always
+    restart: no
     ports:
-      - "8000:8000"  # Exposes Laravel server
+      - "8000:80"  # Exposes Laravel server
       - "5173:5173"  # Exposes Vite Hot-Reloading server
     volumes:
-      - .:/var/www
+      - .:/var/www/html
     environment:
       - DB_CONNECTION=mysql
       - DB_HOST=db

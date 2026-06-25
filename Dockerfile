@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     zip \
-    && docker-php-ext-install pdo pdo_pgsql zip \
+    && docker-php-ext-install pdo_mysql zip \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
@@ -33,7 +33,12 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     zip \
-    && docker-php-ext-install pdo pdo_pgsql zip \
+    curl \
+    gnupg \
+    ca-certificates \
+    && docker-php-ext-install pdo_mysql zip \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -48,7 +53,9 @@ COPY nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 10000
 
-CMD sh -c "php artisan config:cache && \
+CMD sh -c "npm install && \
+npm run build && \
+php artisan config:cache && \
 php artisan route:cache && \
 php artisan view:cache && \
 php artisan migrate --force && \
