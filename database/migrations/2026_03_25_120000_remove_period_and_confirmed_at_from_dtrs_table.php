@@ -13,16 +13,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Disable foreign key checks to allow dropping indices safely
-        Schema::disableForeignKeyConstraints();
-
         Schema::table('dtrs', function (Blueprint $table) {
-            $table->dropUnique('dtrs_employee_id_month_year_unique');
-            $table->dropColumn(['month', 'year', 'confirmed_at']);
-        });
 
-        // Re-enable foreign key checks
-        Schema::enableForeignKeyConstraints();
+            // Create a replacement index for employee_id
+            $table->index('employee_id', 'dtrs_employee_id_index');
+
+            // Drop the old composite unique index
+            $table->dropUnique('dtrs_employee_id_month_year_unique');
+
+            // Drop obsolete columns
+            $table->dropColumn([
+                'month',
+                'year',
+                'confirmed_at',
+            ]);
+        });
     }
 
     /**
