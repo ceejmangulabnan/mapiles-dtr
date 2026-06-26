@@ -14,9 +14,9 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      - DB_CONNECTION=mysql
+      - DB_CONNECTION=pgsql
       - DB_HOST=db
-      - DB_PORT=3306
+      - DB_PORT=5432
       - DB_DATABASE=mapiles_dtr
       - DB_USERNAME=dtr_user
       - DB_PASSWORD=dtr_secure_pass
@@ -25,18 +25,17 @@ services:
 
   # Database Container
   db:
-    image: mysql:8.0
+    image: postgres:16
     container_name: mapiles_dtr_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root_secure_password
-      MYSQL_DATABASE: mapiles_dtr
-      MYSQL_USER: dtr_user
-      MYSQL_PASSWORD: dtr_secure_pass
+      POSTGRES_DB: mapiles_dtr
+      POSTGRES_USER: dtr_user
+      POSTGRES_PASSWORD: dtr_secure_pass
     ports:
-      - "3306:3306"  # Exposes database port
+      - "5432:5432"  # Exposes database port
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  mysql_data:
+  postgres_data:
