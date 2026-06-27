@@ -21,17 +21,13 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
 
-    public const ROLE_ADMIN = 'Admin';
-    public const ROLE_MANAGEMENT = 'Management';
-    public const ROLE_EMPLOYEE = 'Employee';
-
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'role' => 'string',
+            'role' => UserRole::class,
         ];
     }
 
