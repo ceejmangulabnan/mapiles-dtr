@@ -17,14 +17,14 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
-            'password' => env('SEED_ADMIN_PASSWORD', 'adminmapiles'),
+            'password' => env('SEED_ADMIN_PASSWORD'),
             'role' => UserRole::Admin,
         ]);
 
         User::factory()->create([
             'name' => 'Management',
             'email' => 'management@example.com',
-            'password' => env('SEED_MANAGEMENT_PASSWORD', 'managementmapiles'),
+            'password' => env('SEED_MANAGEMENT_PASSWORD'),
             'role' => UserRole::Management,
         ]);
     }
