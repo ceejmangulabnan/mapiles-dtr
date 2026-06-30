@@ -4,6 +4,7 @@ use App\Http\Controllers\CalculateController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\SummaryController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -20,6 +21,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('ranking', [RankingController::class, 'index'])->name('ranking.index');
     Route::get('ranking/pdf', [RankingController::class, 'exportPdf'])->name('ranking.export-pdf');
     Route::delete('summary/{dtr}', [SummaryController::class, 'destroy'])->name('summary.destroy');
+
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.update-status');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 require __DIR__.'/settings.php';

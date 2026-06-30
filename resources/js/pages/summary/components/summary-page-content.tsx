@@ -16,7 +16,6 @@ import {
 import {
     breadcrumbs,
     formatConfirmedAt
-    
 } from '../helpers/summary-page';
 import type {SummaryPageProps} from '../helpers/summary-page';
 import { useDtrHistory } from '../hooks/use-dtr-history';

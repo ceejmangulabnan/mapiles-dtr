@@ -16,7 +16,7 @@ class SummaryController extends Controller
     {
         $dtrRecords = Dtr::query()
             ->with([
-                'employee',
+                'employee.user',
                 'entries' => fn ($query) => $query->orderBy('work_date'),
             ])
             ->orderByDesc('updated_at')
@@ -31,6 +31,7 @@ class SummaryController extends Controller
                 return [
                     'id' => $dtr->id,
                     'employeeId' => $dtr->employee_id,
+                    'employeeStatus' => $dtr->employee?->user?->status?->value ?? 'active',
                     'employeeName' => $dtr->employee?->first_name !== null
                         ? collect([
                             $dtr->employee?->first_name,
