@@ -12,12 +12,12 @@ import AppLayout from '@/layouts/app-layout';
 import {
     breadcrumbs,
     formatDaySet,
-    formatTime
-    
+    formatTime,
 } from '../helpers/employees-page';
-import type {EmployeesPageProps} from '../helpers/employees-page';
+import type { EmployeesPageProps } from '../helpers/employees-page';
 import { useEmployeeDialog } from '../hooks/use-employee-dialog';
 import EmployeeDialog from './employee-dialog';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function EmployeesPageContent({
     successMessage = null,
@@ -25,6 +25,7 @@ export default function EmployeesPageContent({
     summary,
 }: EmployeesPageProps) {
     const dialog = useEmployeeDialog();
+    const auth = useAuth();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -138,18 +139,21 @@ export default function EmployeesPageContent({
                                                         >
                                                             Edit
                                                         </Button>
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() =>
-                                                                dialog.deleteEmployee(
-                                                                    employee,
-                                                                )
-                                                            }
-                                                        >
-                                                            Delete
-                                                        </Button>
+                                                        {auth.user.role ===
+                                                            'admin' && (
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() =>
+                                                                    dialog.deleteEmployee(
+                                                                        employee,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Delete
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
