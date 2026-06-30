@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import type { SubmitEventHandler, SubmitEvent } from 'react';
 import { useState } from 'react';
 import { store as employeesStore } from '@/routes/employees';
 import {
@@ -7,12 +7,13 @@ import {
     defaultEmployeeFormData,
     employeePath,
     employeeToFormData,
-    getDerivedRates
-    
-    
-    
+    getDerivedRates,
 } from '../helpers/employees-page';
-import type {EmployeeFormData, EmployeeRow, ScheduleGroupForm} from '../helpers/employees-page';
+import type {
+    EmployeeFormData,
+    EmployeeRow,
+    ScheduleGroupForm,
+} from '../helpers/employees-page';
 
 export function useEmployeeDialog() {
     const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false);
@@ -109,8 +110,11 @@ export function useEmployeeDialog() {
     const groupFieldError = (index: number, field: 'start_time' | 'end_time') =>
         errors[`schedule_groups.${index}.${field}`];
 
-    const submit = (event: FormEvent<HTMLFormElement>) => {
+    const submit: SubmitEventHandler = (event: SubmitEvent) => {
         event.preventDefault();
+
+        try {
+        } catch (e) {}
 
         const onSuccess = () => {
             setIsEmployeeDialogOpen(false);
