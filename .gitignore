@@ -12,11 +12,6 @@
 /vendor
 .DS_Store
 .env
-.env.example
-.env.local
-.env.local.php
-.env.testing
-.env.testing
 .env.backup
 .env.production
 .phpactor.json
