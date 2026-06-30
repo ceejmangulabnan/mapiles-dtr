@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyEmployeeRequest;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +25,7 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request): RedirectResponse
     {
-        $this->saveEmployee(new Employee, $request->validated());
+        $this->saveEmployee(new Employee(), $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee added successfully.');
     }
@@ -35,8 +37,12 @@ class EmployeeController extends Controller
         return to_route('employees.index')->with('success', 'Employee updated successfully.');
     }
 
-    public function destroy(Employee $employee): RedirectResponse
+    public function destroy(DestroyEmployeeRequest $request, Employee $employee): RedirectResponse
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to delete employees.');
+        }
+
         $employee->delete();
 
         return to_route('employees.index')->with('success', 'Employee deleted successfully.');
