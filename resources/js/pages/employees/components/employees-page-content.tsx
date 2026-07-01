@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 export default function EmployeesPageContent({
     successMessage = null,
+    errorMessage = null,
     employees,
     summary,
 }: EmployeesPageProps) {
@@ -51,6 +52,12 @@ export default function EmployeesPageContent({
                 {successMessage && (
                     <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-100">
                         {successMessage}
+                    </div>
+                )}
+
+                {errorMessage && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
+                        {errorMessage}
                     </div>
                 )}
 

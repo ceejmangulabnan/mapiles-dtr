@@ -23,6 +23,7 @@ export type EmployeeRow = {
 
 export type EmployeesPageProps = {
     successMessage?: string | null;
+    errorMessage?: string | null;
     employees: EmployeeRow[];
     summary: {
         totalEmployees: number;
@@ -91,7 +92,9 @@ export function getDerivedRates(monthlyRate: string) {
     };
 }
 
-export const createScheduleGroup = (days: number[] = []): ScheduleGroupForm => ({
+export const createScheduleGroup = (
+    days: number[] = [],
+): ScheduleGroupForm => ({
     days,
     start_time: '09:00',
     end_time: '18:00',
@@ -107,7 +110,9 @@ export const defaultEmployeeFormData = (): EmployeeFormData => ({
 
 export const employeePath = (employeeId: number) => `/employees/${employeeId}`;
 
-export const employeeToFormData = (employee: EmployeeRow): EmployeeFormData => ({
+export const employeeToFormData = (
+    employee: EmployeeRow,
+): EmployeeFormData => ({
     first_name: employee.firstName,
     middle_name: employee.middleName ?? '',
     last_name: employee.lastName,
@@ -167,3 +172,4 @@ export function formatDaySet(days: number[]) {
         )
         .join(', ');
 }
+

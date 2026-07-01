@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Enums\UserRole;
 use App\Http\Requests\UpdateUserStatusRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,9 +45,9 @@ class UserController extends Controller
         return to_route('users.index')->with('success', 'User status updated successfully.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(Request $request, User $user): RedirectResponse
     {
-        $authUser = Auth::user();
+        $authUser = $request->user();
 
         if (! $authUser->isAdmin() && ! $authUser->isManagement()) {
             abort(403, 'Unauthorized action.');

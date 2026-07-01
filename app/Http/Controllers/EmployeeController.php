@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DestroyEmployeeRequest;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Models\Employee;
@@ -25,6 +24,10 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request): RedirectResponse
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to create employees.');
+        }
+
         $this->saveEmployee(new Employee(), $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee added successfully.');
@@ -32,14 +35,18 @@ class EmployeeController extends Controller
 
     public function update(StoreEmployeeRequest $request, Employee $employee): RedirectResponse
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to update employees.');
+        }
+
         $this->saveEmployee($employee, $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee updated successfully.');
     }
 
-    public function destroy(DestroyEmployeeRequest $request, Employee $employee): RedirectResponse
+    public function destroy(Request $request, Employee $employee): RedirectResponse
     {
-        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+        if (! $request->user()->isAdmin()) {
             return back()->with('error', 'You do not have permission to delete employees.');
         }
 
@@ -101,6 +108,7 @@ class EmployeeController extends Controller
 
         return [
             'successMessage' => session('success'),
+            'errorMessage' => session('error'),
             'employees' => $employees,
             'summary' => [
                 'totalEmployees' => $employeeRecords->count(),

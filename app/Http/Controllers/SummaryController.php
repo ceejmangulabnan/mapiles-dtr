@@ -6,6 +6,7 @@ use App\Models\Dtr;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,6 +15,8 @@ class SummaryController extends Controller
 {
     public function index(): Response
     {
+
+
         $dtrRecords = Dtr::query()
             ->with([
                 'employee.user',
@@ -72,8 +75,13 @@ class SummaryController extends Controller
         ]);
     }
 
-    public function export(Dtr $dtr): HttpResponse
+    public function export(Request $request, Dtr $dtr): HttpResponse
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return new HttpResponse('You are not authorized to export employee DTRs.', 403);
+        }
+
+
         $dtr->load(['employee', 'entries' => fn ($query) => $query->orderBy('work_date')]);
 
         $periodDate = $this->resolvedPeriodDate($dtr);
@@ -131,8 +139,12 @@ class SummaryController extends Controller
         ]);
     }
 
-    public function destroy(Dtr $dtr): RedirectResponse
+    public function destroy(Request $request, Dtr $dtr): RedirectResponse
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to delete employee DTRs.');
+        }
+
         $dtr->delete();
 
         return to_route('summary.index')->with('success', 'DTR deleted successfully.');
