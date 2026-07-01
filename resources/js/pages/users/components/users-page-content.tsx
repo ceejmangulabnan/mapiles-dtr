@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { Can } from '@/components/can';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -151,7 +152,7 @@ export default function UsersPageContent({
                                                 </td>
                                                 {canManage && (
                                                     <td className="px-4 py-4 align-middle">
-                                                        <div className="flex flex-wrap items-center gap-2">
+                                                        <div className="flex items-center gap-2">
                                                             <Select
                                                                 value={
                                                                     user.status
@@ -190,18 +191,20 @@ export default function UsersPageContent({
                                                                 </SelectContent>
                                                             </Select>
 
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                onClick={() =>
-                                                                    handleDelete(
-                                                                        user,
-                                                                    )
-                                                                }
-                                                            >
-                                                                Delete
-                                                            </Button>
+                                                            <Can permission="delete-users">
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="destructive"
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            user,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </Can>
                                                         </div>
                                                     </td>
                                                 )}

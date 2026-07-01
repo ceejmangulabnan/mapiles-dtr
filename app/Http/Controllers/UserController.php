@@ -62,16 +62,8 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        $authUser = $request->user();
-
-        if (! $authUser->isAdmin() && ! $authUser->isManagement()) {
+        if (! $request->user()->isAdmin()) {
             abort(403, 'Unauthorized action.');
-        }
-
-        if (! $authUser->isAdmin()) {
-            $user->update(['status' => 'resigned']);
-
-            return to_route('users.index')->with('success', 'User status changed to resigned.');
         }
 
         $user->delete();
