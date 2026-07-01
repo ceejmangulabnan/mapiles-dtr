@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,6 +32,19 @@ class UserController extends Controller
         ]);
     }
 
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'role' => $request->input('role'),
+            'status' => $request->input('status', 'active'),
+        ]);
+
+        return to_route('users.index')->with('success', 'User created successfully.');
+    }
+
     public function updateStatus(UpdateUserStatusRequest $request, User $user): RedirectResponse
     {
         $authUser = $request->user();
@@ -47,16 +62,8 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        $authUser = $request->user();
-
-        if (! $authUser->isAdmin() && ! $authUser->isManagement()) {
+        if (! $request->user()->isAdmin()) {
             abort(403, 'Unauthorized action.');
-        }
-
-        if (! $authUser->isAdmin()) {
-            $user->update(['status' => 'resigned']);
-
-            return to_route('users.index')->with('success', 'User status changed to resigned.');
         }
 
         $user->delete();

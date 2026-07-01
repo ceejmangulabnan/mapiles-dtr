@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('summary/{dtr}', [SummaryController::class, 'destroy'])->name('summary.destroy');
 
     Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::post('users', [UserController::class, 'store'])->name('users.store');
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.update-status');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });

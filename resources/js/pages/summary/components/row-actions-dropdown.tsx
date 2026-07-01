@@ -1,4 +1,5 @@
 import { Eye, FileDown, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Can } from '@/components/can';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -47,14 +48,16 @@ export default function RowActionsDropdown({
                     <Eye className="h-4 w-4" />
                     View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onExportPdf}>
-                    <FileDown className="h-4 w-4" />
-                    Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onExportCsv}>
-                    <FileDown className="h-4 w-4" />
-                    Export as CSV
-                </DropdownMenuItem>
+                <Can permission="export-dtr">
+                    <DropdownMenuItem onClick={onExportPdf}>
+                        <FileDown className="h-4 w-4" />
+                        Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onExportCsv}>
+                        <FileDown className="h-4 w-4" />
+                        Export as CSV
+                    </DropdownMenuItem>
+                </Can>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onEdit}>
                     <Pencil className="h-4 w-4" />

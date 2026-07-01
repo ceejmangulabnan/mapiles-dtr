@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Download, FileDown } from 'lucide-react';
 import Papa from 'papaparse';
+import { Can } from '@/components/can';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import {
@@ -158,28 +159,30 @@ export default function RankingPageContent({
                         title="Ranking"
                         description="Compare employees by punctuality only. Overtime is not part of this ranking. Employees are ranked by how consistently they arrive on time within the selected period."
                     />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={rankings.length === 0}
-                            >
-                                <Download className="h-4 w-4" />
-                                Export
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={exportRankingsAsPdf}>
-                                <FileDown className="h-4 w-4" />
-                                Export as PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={exportRankingsAsCsv}>
-                                <FileDown className="h-4 w-4" />
-                                Export as CSV
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Can permission="export-dtr">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={rankings.length === 0}
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Export
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={exportRankingsAsPdf}>
+                                    <FileDown className="h-4 w-4" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={exportRankingsAsCsv}>
+                                    <FileDown className="h-4 w-4" />
+                                    Export as CSV
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </Can>
                 </div>
 
                 <Card>
