@@ -1,4 +1,5 @@
 ﻿import { Download, FileDown } from 'lucide-react';
+import { Can } from '@/components/can';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -62,26 +63,28 @@ export default function DtrDetailsDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex flex-wrap gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button type="button" size="sm" variant="outline">
-                                <Download className="h-4 w-4" />
-                                Export
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                            <DropdownMenuItem onClick={() => onExportPdf(dtr)}>
-                                <FileDown className="h-4 w-4" />
-                                Export as PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onExportCsv(dtr)}>
-                                <FileDown className="h-4 w-4" />
-                                Export as CSV
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <Can permission="export-dtr">
+                    <div className="flex flex-wrap gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" size="sm" variant="outline">
+                                    <Download className="h-4 w-4" />
+                                    Export
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => onExportPdf(dtr)}>
+                                    <FileDown className="h-4 w-4" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onExportCsv(dtr)}>
+                                    <FileDown className="h-4 w-4" />
+                                    Export as CSV
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </Can>
 
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
                     <div className="rounded-lg border p-4">

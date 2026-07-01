@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import Heading from '@/components/heading';
+import { Can } from '@/components/can';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -17,7 +18,6 @@ import {
 import type { EmployeesPageProps } from '../helpers/employees-page';
 import { useEmployeeDialog } from '../hooks/use-employee-dialog';
 import EmployeeDialog from './employee-dialog';
-import { useAuth } from '@/hooks/use-auth';
 
 export default function EmployeesPageContent({
     successMessage = null,
@@ -26,7 +26,6 @@ export default function EmployeesPageContent({
     summary,
 }: EmployeesPageProps) {
     const dialog = useEmployeeDialog();
-    const auth = useAuth();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -39,12 +38,14 @@ export default function EmployeesPageContent({
                         description="Add employee records and define fixed schedule blocks for attendance tracking."
                     />
 
-                    <Button
-                        type="button"
-                        onClick={dialog.openCreateEmployeeDialog}
-                    >
-                        Add employee
-                    </Button>
+                    <Can permission="manage-employees">
+                        <Button
+                            type="button"
+                            onClick={dialog.openCreateEmployeeDialog}
+                        >
+                            Add employee
+                        </Button>
+                    </Can>
                 </div>
 
                 <EmployeeDialog dialog={dialog} />
@@ -98,9 +99,11 @@ export default function EmployeesPageContent({
                                             <th className="px-4 py-3 font-medium">
                                                 Weekly schedule
                                             </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Actions
-                                            </th>
+                                            <Can permission="manage-employees">
+                                                <th className="px-4 py-3 font-medium">
+                                                    Actions
+                                                </th>
+                                            </Can>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
@@ -132,37 +135,38 @@ export default function EmployeesPageContent({
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 align-top">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                dialog.openEditEmployeeDialog(
-                                                                    employee,
-                                                                )
-                                                            }
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        {auth.user.role ===
-                                                            'admin' && (
+                                                <Can permission="manage-employees">
+                                                    <td className="px-4 py-4 align-top">
+                                                        <div className="flex flex-wrap gap-2">
                                                             <Button
                                                                 type="button"
                                                                 size="sm"
-                                                                variant="destructive"
+                                                                variant="outline"
                                                                 onClick={() =>
-                                                                    dialog.deleteEmployee(
+                                                                    dialog.openEditEmployeeDialog(
                                                                         employee,
                                                                     )
                                                                 }
                                                             >
-                                                                Delete
+                                                                Edit
                                                             </Button>
-                                                        )}
-                                                    </div>
-                                                </td>
+                                                            <Can permission="delete-employees">
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="destructive"
+                                                                    onClick={() =>
+                                                                        dialog.deleteEmployee(
+                                                                            employee,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </Can>
+                                                        </div>
+                                                    </td>
+                                                </Can>
                                             </tr>
                                         ))}
                                     </tbody>
