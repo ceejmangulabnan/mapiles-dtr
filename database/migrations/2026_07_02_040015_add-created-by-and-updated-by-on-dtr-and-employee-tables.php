@@ -14,8 +14,8 @@ return new class extends Migration
         // Add created_by (user_id) and updated_by (user_id) to employees table for auditing and tracking transactions.
         Schema::table('employees', function(Blueprint $table) 
         {
-            $table->foreignId('created_by')->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
         });
     }
 
