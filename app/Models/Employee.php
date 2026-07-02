@@ -34,6 +34,16 @@ class Employee extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function createdBy(): BelongsTo 
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function updatedBy(): BelongsTo 
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
