@@ -10,12 +10,28 @@
             color: #111827;
             font-size: 13px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .header-left {
+            flex: 1;
+        }
+        .logo {
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            width: 80px;
+            height: auto;
+        }
         h1 {
-            margin: 0 0 8px;
+            margin: 0 0 4px;
             font-size: 22px;
         }
         p {
-            margin: 4px 0;
+            margin: 2px 0;
         }
         table {
             width: 100%;
@@ -64,12 +80,17 @@
     </style>
 </head>
 <body>
-    <h1>DTR Summary</h1>
-    <p><strong>Employee:</strong> {{ $employeeName }}</p>
-    <p><strong>Period:</strong> {{ $monthLabel }} {{ $year }}</p>
-    @if ($confirmedAt)
-        <p><strong>Confirmed at:</strong> {{ \Carbon\Carbon::parse($confirmedAt)->format('M j, Y, g:i A') }}</p>
-    @endif
+    <div class="header">
+        <div class="header-left">
+            <h1>DTR Summary</h1>
+            <p><strong>Employee:</strong> {{ $employeeName }}</p>
+            <p><strong>Period:</strong> {{ $monthLabel }} {{ $year }}</p>
+            @if ($confirmedAt)
+                <p><strong>Confirmed at:</strong> {{ \Carbon\Carbon::parse($confirmedAt)->format('M j, Y, g:i A') }}</p>
+            @endif
+        </div>
+        <img src="{{ public_path('mapiles-icon.png') }}" alt="Mapiles Logo" class="logo">
+    </div>
 
     <div class="meta-grid">
         <div class="meta-card">
@@ -102,9 +123,40 @@
         </div>
     </div>
 
+    @php
+        $regularHolidays = array_filter($entries, fn($e) => $e['holidayType'] === 'regularHoliday');
+        $specialHolidays = array_filter($entries, fn($e) => $e['holidayType'] === 'specialWorkingHoliday');
+        $dailyRateNum = (float) $dailyRateBasis;
+    @endphp
+
+    @if (count($regularHolidays) > 0)
+        <div class="overtime-note">
+            <strong>Regular Holiday computation (200%):</strong>
+            @foreach ($regularHolidays as $entry)
+                @php
+                    $computed = (float) ($entry['baseRate'] ?: $dailyRateNum) * 2;
+                @endphp
+                {{ $entry['label'] }}: PHP {{ number_format((float) ($entry['baseRate'] ?: $dailyRateNum), 2) }} x 2 = PHP {{ number_format($computed, 2) }}
+                @if (!$loop->last) | @endif
+            @endforeach
+        </div>
+    @endif
+
+    @if (count($specialHolidays) > 0)
+        <div class="overtime-note">
+            <strong>Special Holiday computation (130%):</strong>
+            @foreach ($specialHolidays as $entry)
+                @php
+                    $computed = (float) ($entry['baseRate'] ?: $dailyRateNum) * 1.3;
+                @endphp
+                {{ $entry['label'] }}: PHP {{ number_format((float) ($entry['baseRate'] ?: $dailyRateNum), 2) }} x 1.3 = PHP {{ number_format($computed, 2) }}
+                @if (!$loop->last) | @endif
+            @endforeach
+        </div>
+    @endif
+
     @if ($totalOvertimeMinutes > 0)
         @php
-            $dailyRateNum = (float) $dailyRateBasis;
             $hourlyRateBasis = $dailyRateNum > 0 ? $dailyRateNum / 8 : 0;
             $totalHours = $totalOvertimeMinutes / 60;
             $baseOvertimeAmount = $totalHours * $hourlyRateBasis;

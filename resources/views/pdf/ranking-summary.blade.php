@@ -10,12 +10,28 @@
             color: #111827;
             font-size: 13px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .header-left {
+            flex: 1;
+        }
+        .logo {
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            width: 80px;
+            height: auto;
+        }
         h1 {
-            margin: 0 0 8px;
+            margin: 0 0 4px;
             font-size: 22px;
         }
         p {
-            margin: 4px 0;
+            margin: 2px 0;
         }
         table {
             width: 100%;
@@ -57,8 +73,13 @@
     </style>
 </head>
 <body>
-    <h1>Punctuality Ranking</h1>
-    <p><strong>Period:</strong> {{ $periodLabel }}</p>
+    <div class="header">
+        <div class="header-left">
+            <h1>Punctuality Ranking</h1>
+            <p><strong>Period:</strong> {{ $periodLabel }}</p>
+        </div>
+        <img src="{{ public_path('mapiles-icon.png') }}" alt="Mapiles Logo" class="logo">
+    </div>
 
     <div class="meta-grid">
         <div class="meta-card">
