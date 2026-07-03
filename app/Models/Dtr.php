@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'sss_deduction',
     'pagibig_deduction',
     'total_amount',
+    'created_by',
+    'updated_by',
 ])]
 class Dtr extends Model
 {
@@ -43,6 +45,16 @@ class Dtr extends Model
     public function confirmedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function entries(): HasMany

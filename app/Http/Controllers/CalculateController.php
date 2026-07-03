@@ -212,6 +212,8 @@ class CalculateController extends Controller
                 $dtr = Dtr::query()->create([
                     'employee_id' => $employee->id,
                     'confirmed_by' => $request->user()?->id,
+                    'created_by' => $request->user()?->id,
+                    'updated_by' => $request->user()?->id,
                     'total_days' => 0,
                     'total_worked_minutes' => 0,
                     'total_overtime_minutes' => 0,
@@ -277,6 +279,7 @@ class CalculateController extends Controller
 
             $dtr->fill([
                 'confirmed_by' => $request->user()?->id,
+                'updated_by' => $request->user()?->id,
                 'total_days' => $allEntryTotals->count(),
                 'total_worked_minutes' => (int) $allEntryTotals->sum('worked_minutes'),
                 'total_overtime_minutes' => $totalOvertimeMinutes,
