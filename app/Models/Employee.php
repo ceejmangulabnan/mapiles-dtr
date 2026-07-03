@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'work_days',
     'weekly_schedule',
     'user_id',
+    'created_by',
+    'updated_by'
 ])]
 class Employee extends Model
 {
@@ -34,14 +36,14 @@ class Employee extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function createdBy(): BelongsTo 
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy(): BelongsTo 
+    public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**

@@ -28,7 +28,10 @@ class EmployeeController extends Controller
             return back()->with('error', 'You do not have permission to create employees.');
         }
 
-        $this->saveEmployee(new Employee(), $request->validated());
+        $employee = new Employee();
+        $employee->created_by = $request->user()->id;
+        $employee->updated_by = $request->user()->id;
+        $this->saveEmployee($employee, $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee added successfully.');
     }
@@ -39,6 +42,7 @@ class EmployeeController extends Controller
             return back()->with('error', 'You do not have permission to update employees.');
         }
 
+        $employee->updated_by = $request->user()->id;
         $this->saveEmployee($employee, $request->validated());
 
         return to_route('employees.index')->with('success', 'Employee updated successfully.');
