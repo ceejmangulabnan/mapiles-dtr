@@ -179,6 +179,8 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
             )
             .join('');
 
+        const logoUrl = `${window.location.origin}/mapiles-icon.png`;
+
         printWindow.document.write(`
             <!doctype html>
             <html>
@@ -186,8 +188,11 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
                     <title>DTR Summary</title>
                     <style>
                         body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
-                        h1 { margin: 0 0 8px; }
-                        p { margin: 4px 0; }
+                        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+                        .header-left { flex: 1; }
+                        .logo { position: fixed; top: 24px; right: 24px; width: 80px; height: auto; }
+                        h1 { margin: 0 0 4px; }
+                        p { margin: 2px 0; }
                         table { width: 100%; border-collapse: collapse; margin-top: 24px; }
                         th, td { border: 1px solid #d1d5db; padding: 10px; text-align: left; font-size: 14px; }
                         th { background: #f3f4f6; }
@@ -199,10 +204,15 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
                     </style>
                 </head>
                 <body>
-                    <h1>DTR Summary</h1>
-                    <p><strong>Employee:</strong> ${escapeHtml(dtr.employeeName)}</p>
-                    <p><strong>Period:</strong> ${escapeHtml(`${dtr.monthLabel} ${dtr.year}`)}</p>
-                    <p><strong>Confirmed at:</strong> ${escapeHtml(formatConfirmedAt(dtr.confirmedAt))}</p>
+                    <div class="header">
+                        <div class="header-left">
+                            <h1>DTR Summary</h1>
+                            <p><strong>Employee:</strong> ${escapeHtml(dtr.employeeName)}</p>
+                            <p><strong>Period:</strong> ${escapeHtml(`${dtr.monthLabel} ${dtr.year}`)}</p>
+                            <p><strong>Confirmed at:</strong> ${escapeHtml(formatConfirmedAt(dtr.confirmedAt))}</p>
+                        </div>
+                        <img src="${escapeHtml(logoUrl)}" alt="Mapiles Logo" class="logo">
+                    </div>
                     <div class="meta">
                         <div class="meta-card">
                             <div class="label">Workdays</div>
