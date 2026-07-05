@@ -44,19 +44,23 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
+# Copy built applications from builder stage
 COPY --from=builder /var/www/html /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+# Ensure permissions are correct for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
 
-COPY nginx.conf /etc/nginx/sites-available/default
+# Copy your Nginx configuration directly to sites-enabled to avoid symlink/activation issues
+COPY nginx.conf /etc/nginx/sites-enabled/default
 
+# Render dynamically assigns a port using the $PORT environment variable
 EXPOSE 10000
 
 CMD sh -c "php artisan config:cache && \
 php artisan route:cache && \
 php artisan view:cache && \
-php artisan migrate --force || echo 'Migration skipped (no database)' && \
-sed -i 's/listen 80;/listen '"${PORT:-80}"';/' /etc/nginx/sites-available/default && \
+php artisan migrate --force --seed || echo 'Migration skipped (no database)' && \
+sed -i \"s/listen [0-9]*/listen \${PORT:-10000}/g\" /etc/nginx/sites-enabled/default && \
 php-fpm -D && \
 nginx -g 'daemon off;'"
