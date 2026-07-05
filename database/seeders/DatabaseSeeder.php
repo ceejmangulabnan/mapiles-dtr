@@ -14,18 +14,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => env('SEED_ADMIN_PASSWORD'),
-            'role' => UserRole::Admin,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => env('SEED_ADMIN_PASSWORD'),
+                'role' => UserRole::Admin,
+            ],
+        );
 
-        User::factory()->create([
-            'name' => 'Management',
-            'email' => 'management@example.com',
-            'password' => env('SEED_MANAGEMENT_PASSWORD'),
-            'role' => UserRole::Management,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'management@example.com'],
+            [
+                'name' => 'Management',
+                'password' => env('SEED_MANAGEMENT_PASSWORD'),
+                'role' => UserRole::Management,
+            ],
+        );
     }
 }
