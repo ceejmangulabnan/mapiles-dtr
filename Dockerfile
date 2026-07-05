@@ -23,6 +23,13 @@ COPY . /var/www/html
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Generate wayfinder route/action TypeScript files before Vite build.
+# Since .env is in .dockerignore, create a minimal env so artisan commands work.
+RUN cp .env.example .env && \
+    php artisan key:generate && \
+    php artisan wayfinder:generate && \
+    rm .env
+
 RUN npm cache clean --force && \
     npm install --include=optional --platform=linux --arch=x64 && \
     npm run build
