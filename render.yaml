@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: mapiles-dtr
+    runtime: image
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        value: https://mapiles-dtr.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: CACHE_STORE
+        value: file
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: INERTIA_SSR_ENABLED
+        value: "false"
