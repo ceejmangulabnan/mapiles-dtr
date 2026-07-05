@@ -66,7 +66,7 @@ class CalculateController extends Controller
 
     public function index(Request $request): Response
     {
-        $selectedEmployeeId = $request->integer('employee') ?: null;
+        $selectedEmployeeId = $request->query('employee') ?: null;
         $selectedMonth = $request->integer('month') ?: (int) now()->month;
         $selectedYear = $request->integer('year') ?: (int) now()->year;
         $selectedCalendarRange = $this->resolvedCalendarRange(
@@ -362,7 +362,7 @@ class CalculateController extends Controller
         ];
     }
 
-    protected function activeDtr(int $employeeId, int $month, int $year): ?array
+    protected function activeDtr(string $employeeId, int $month, int $year): ?array
     {
         $dtr = $this->dtrQueryForPeriod($employeeId, $month, $year)
             ->with(['entries' => fn ($query) => $query->orderBy('work_date')])
@@ -610,7 +610,7 @@ class CalculateController extends Controller
         return number_format(round($value, 2), 2, '.', '');
     }
 
-    protected function dtrQueryForPeriod(int $employeeId, int $month, int $year): Builder
+    protected function dtrQueryForPeriod(string $employeeId, int $month, int $year): Builder
     {
         [$startDate, $endDate] = $this->periodBounds($month, $year);
 
