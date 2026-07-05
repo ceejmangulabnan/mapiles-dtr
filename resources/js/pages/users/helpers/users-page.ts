@@ -2,7 +2,7 @@ import { index as usersIndex } from '@/routes/users';
 import type { BreadcrumbItem } from '@/types';
 
 export type UserRow = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     role: 'admin' | 'management' | 'employee';

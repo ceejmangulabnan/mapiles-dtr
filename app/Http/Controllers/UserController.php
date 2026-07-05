@@ -7,7 +7,6 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,7 +36,7 @@ class UserController extends Controller
         User::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
+            'password' => $request->input('password'),
             'role' => $request->input('role'),
             'status' => $request->input('status', 'active'),
         ]);

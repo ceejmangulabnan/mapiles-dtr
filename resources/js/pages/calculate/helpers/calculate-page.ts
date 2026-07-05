@@ -9,7 +9,7 @@ export type EmployeeScheduleDay = {
 };
 
 export type EmployeeOption = {
-    id: number;
+    id: string;
     fullName: string;
     dailyRate: string;
     monthlyRate: string;
@@ -58,7 +58,7 @@ export type AttendanceCalendarRange =
     | 'lastTwoWeeks';
 
 export type InitialSelection = {
-    employeeId?: number | null;
+    employeeId?: string | null;
     month?: number | null;
     year?: number | null;
     calendarRange?: AttendanceCalendarRange | null;
@@ -75,7 +75,7 @@ export type ActiveDtrEntry = {
 };
 
 export type ActiveDtr = {
-    employeeId: number;
+    employeeId: string;
     month: number;
     year: number;
     sssDeduction: string;

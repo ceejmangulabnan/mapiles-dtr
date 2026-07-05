@@ -8,7 +8,7 @@ export type EmployeeScheduleGroup = {
 };
 
 export type EmployeeRow = {
-    id: number;
+    id: string;
     firstName: string;
     middleName: string | null;
     lastName: string;
@@ -108,7 +108,7 @@ export const defaultEmployeeFormData = (): EmployeeFormData => ({
     schedule_groups: [createScheduleGroup([1, 2, 3, 4, 5])],
 });
 
-export const employeePath = (employeeId: number) => `/employees/${employeeId}`;
+export const employeePath = (employeeId: string) => `/employees/${employeeId}`;
 
 export const employeeToFormData = (
     employee: EmployeeRow,

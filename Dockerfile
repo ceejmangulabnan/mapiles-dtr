@@ -52,7 +52,8 @@ WORKDIR /var/www/html
 
 COPY --from=builder /var/www/html /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+RUN mkdir -p /var/www/html/storage/fonts && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 COPY nginx.conf /etc/nginx/sites-enabled/default
