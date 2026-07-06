@@ -17,7 +17,7 @@ class StoreDtrRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id' => ['required', 'integer', 'exists:employees,id'],
+            'employee_id' => ['required', 'uuid', 'exists:employees,id'],
             'month' => ['required', 'integer', 'between:1,12'],
             'year' => ['required', 'integer', 'between:2000,2100'],
             'calendar_range' => [
