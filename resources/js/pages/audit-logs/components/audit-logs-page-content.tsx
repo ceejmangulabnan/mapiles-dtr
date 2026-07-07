@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -63,8 +64,8 @@ export default function AuditLogsPageContent() {
                     <CardHeader>
                         <CardTitle>Audit Log Filters</CardTitle>
                         <CardDescription>
-                            Filter by action, resource type, month, and year to
-                            narrow down audit entries.
+                            Filter by action, resource type, month, year, or
+                            date range to narrow down audit entries.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -155,6 +156,45 @@ export default function AuditLogsPageContent() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="audit-date-from">Date from</Label>
+                                <Input
+                                    id="audit-date-from"
+                                    type="date"
+                                    value={filters.date_from ?? ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value || undefined;
+                                        router.get(
+                                            auditLogsIndex.url({
+                                                query: { ...filters, date_from: val },
+                                            }),
+                                            {},
+                                            { preserveState: true, preserveScroll: true },
+                                        );
+                                    }}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="audit-date-to">Date to</Label>
+                                <Input
+                                    id="audit-date-to"
+                                    type="date"
+                                    value={filters.date_to ?? ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value || undefined;
+                                        router.get(
+                                            auditLogsIndex.url({
+                                                query: { ...filters, date_to: val },
+                                            }),
+                                            {},
+                                            { preserveState: true, preserveScroll: true },
+                                        );
+                                    }}
+                                />
                             </div>
                         </div>
                     </CardContent>
