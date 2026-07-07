@@ -10,13 +10,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
+    formatRateAmount,
     formatWorkedDuration,
+    getOvertimeAmount,
+    getOvertimeMinutes,
     getWorkedMinutes,
-    holidayOptions
-    
-    
-    
-    
+    holidayOptions,
 } from '../helpers/calculate-page';
 import type {AttendanceEntry, AttendanceField, HolidayType, MonthDay} from '../helpers/calculate-page';
 
@@ -39,6 +38,15 @@ export default function DailyAttendanceRow({
     const workedDuration = entry.isAbsent
         ? formatWorkedDuration(0)
         : formatWorkedDuration(getWorkedMinutes(entry.timeIn, entry.timeOut));
+
+    const overtimeMinutes = entry.isAbsent
+        ? 0
+        : getOvertimeMinutes(
+              getWorkedMinutes(entry.timeIn, entry.timeOut),
+              day.defaultTimeIn,
+              day.defaultTimeOut,
+          );
+    const overtimeAmount = getOvertimeAmount(overtimeMinutes, entry.baseRate);
 
     return (
         <div className="space-y-4 rounded-lg border p-4 lg:hidden">
@@ -146,6 +154,15 @@ export default function DailyAttendanceRow({
                         >
                             Check
                         </Button>
+                    </div>
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                    <Label>Overtime</Label>
+                    <div className="inline-flex h-10 w-full items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
+                        {overtimeMinutes > 0
+                            ? formatRateAmount(overtimeAmount)
+                            : '--'}
                     </div>
                 </div>
             </div>

@@ -17,6 +17,7 @@ import {
     getComputedDailyRate,
     getHolidayLabel,
     getHolidayMultiplier,
+    getHolidayPremium,
     getLateMinutes,
     getLunchBreakMinutes,
     getOvertimeMinutes,
@@ -66,6 +67,8 @@ export type DtrSummary = {
     totalWorkedDuration: string;
     regularAmountLabel: string;
     regularAmount: number;
+    holidayPremium: number;
+    holidayPremiumLabel: string;
     overtime: OvertimeSummaryBreakdown;
     sssContribution: number;
     sssDeductionLabel: string;
@@ -391,6 +394,11 @@ export function useCalculateAttendance(
         (total, entry) => total + entry.rateAmount,
         0,
     );
+    const totalHolidayPremium = summaryEntryData.reduce(
+        (total, entry) =>
+            total + getHolidayPremium(entry.baseRate, entry.holidayType),
+        0,
+    );
     const totalOvertimeMinutes = summaryEntryData.reduce(
         (total, entry) => total + entry.overtimeMinutes,
         0,
@@ -434,6 +442,8 @@ export function useCalculateAttendance(
         totalWorkedDuration: formatWorkedDuration(totalWorkedMinutes),
         regularAmountLabel: formatRateAmount(regularAmountTotal),
         regularAmount: regularAmountTotal,
+        holidayPremium: totalHolidayPremium,
+        holidayPremiumLabel: formatRateAmount(totalHolidayPremium),
         overtime: overtimeSummary,
         sssContribution: autoSss,
         sssDeduction,
