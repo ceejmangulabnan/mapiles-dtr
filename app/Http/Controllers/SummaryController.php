@@ -54,6 +54,9 @@ class SummaryController extends Controller
                     'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                     'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
+                    'holidayPremium' => (string) ($dtr->entries->sum(
+                        fn ($entry): float => (float) ($entry->base_rate ?? 0) * max(0, $this->holidayMultiplier((string) $entry->holiday_type) - 1),
+                    )),
                     'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->toIso8601String(),
                     'entries' => $dtr->entries->map(function ($entry): array {
                         $workDate = Carbon::parse($entry->work_date);
@@ -185,5 +188,14 @@ class SummaryController extends Controller
     protected function formatRate(float $value): string
     {
         return number_format(round($value, 2), 2, '.', '');
+    }
+
+    protected function holidayMultiplier(string $holidayType): float
+    {
+        return match ($holidayType) {
+            'regularHoliday' => 2.0,
+            'specialWorkingHoliday' => 1.3,
+            default => 1.0,
+        };
     }
 }
