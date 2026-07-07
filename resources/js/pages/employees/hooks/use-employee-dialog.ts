@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import type { SubmitEventHandler, SubmitEvent } from 'react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { store as employeesStore } from '@/routes/employees';
 import {
     createScheduleGroup,
@@ -113,12 +114,21 @@ export function useEmployeeDialog() {
     const submit: SubmitEventHandler = (event: SubmitEvent) => {
         event.preventDefault();
 
-        try {
-        } catch (e) {}
-
         const onSuccess = () => {
             setIsEmployeeDialogOpen(false);
             resetEmployeeForm();
+        };
+
+        const onError = (errors: Record<string, string>) => {
+            const messages = Object.values(errors).filter(Boolean);
+            if (messages.length > 0) {
+                toast.error(messages[0], {
+                    description:
+                        messages.length > 1
+                            ? `${messages.length - 1} more error(s)`
+                            : undefined,
+                });
+            }
         };
 
         if (editingEmployee) {
@@ -126,6 +136,7 @@ export function useEmployeeDialog() {
                 preserveScroll: true,
                 preserveState: false,
                 onSuccess,
+                onError,
             });
 
             return;
@@ -135,6 +146,7 @@ export function useEmployeeDialog() {
             preserveScroll: true,
             preserveState: false,
             onSuccess,
+            onError,
         });
     };
 
