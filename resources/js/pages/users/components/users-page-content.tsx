@@ -191,20 +191,22 @@ export default function UsersPageContent({
                                                                 </SelectContent>
                                                             </Select>
 
-                                                            <Can permission="delete-users">
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant="destructive"
-                                                                    onClick={() =>
-                                                                        handleDelete(
-                                                                            user,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Delete
-                                                                </Button>
-                                                            </Can>
+                                                            {!isCurrentUser(user) && (
+                                                                <Can permission="delete-users">
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="destructive"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                user,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </Can>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 )}

@@ -127,6 +127,17 @@ export default function RankingPageContent({
         );
     };
 
+    const logCsvExport = (resource: string, details: Record<string, unknown> = {}) => {
+        const tokenEl = document.querySelector('meta[name=csrf-token]');
+        const token = tokenEl?.getAttribute('content') || '';
+
+        fetch('/audit-logs/log-export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
+            body: JSON.stringify({ type: 'csv', resource, details }),
+        }).catch(() => {});
+    };
+
     const exportRankingsAsCsv = () => {
         if (rankings.length === 0) {
             return;
@@ -145,6 +156,13 @@ export default function RankingPageContent({
         }));
 
         downloadCsv(exportFilename, Papa.unparse(rows));
+
+        logCsvExport('ranking', {
+            month: initialSelection.month,
+            year: initialSelection.year,
+            calendarRange: selectedCalendarRange,
+            count: rankings.length,
+        });
     };
 
     const topEmployee = rankings[0] ?? null;
@@ -419,32 +437,32 @@ export default function RankingPageContent({
 
                                 <div className="space-y-3 md:hidden">
                                     {rankings.map((ranking) => (
-                                        <div
-                                            key={ranking.employeeId}
-                                            className="rounded-lg border p-4"
-                                        >
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="font-medium text-foreground">
-                                                        #{ranking.rank}{' '}
-                                                        {ranking.employeeName}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Punctuality{' '}
-                                                        {formatPunctualityScore(
-                                                            ranking.punctualityScore,
-                                                        )}
-                                                    </p>
+                                            <div
+                                                key={ranking.employeeId}
+                                                className="rounded-lg border p-4"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="font-medium text-foreground">
+                                                            #{ranking.rank}{' '}
+                                                            {ranking.employeeName}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Punctuality{' '}
+                                                            {formatPunctualityScore(
+                                                                ranking.punctualityScore,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled
+                                                    >
+                                                        {ranking.evaluatedDays} days
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    disabled
-                                                >
-                                                    {ranking.evaluatedDays} days
-                                                </Button>
-                                            </div>
 
                                             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                                                 <div>

@@ -1,4 +1,7 @@
 ﻿import { Head } from '@inertiajs/react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { FileDown } from 'lucide-react';
 import Heading from '@/components/heading';
 import {
     Card,
@@ -7,6 +10,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Can } from '@/components/can';
 import AppLayout from '@/layouts/app-layout';
 import RowActionsDropdown from './row-actions-dropdown';
 import {
@@ -65,11 +75,50 @@ export default function SummaryPageContent({
                             </div>
                         ) : (
                             <>
+                                {history.selectionCount > 0 && (
+                                    <div className="mb-4 flex items-center gap-3 rounded-lg border bg-muted/20 px-4 py-2">
+                                        <span className="text-sm font-medium">
+                                            {history.selectionCount} selected
+                                        </span>
+                                        <div className="ml-auto flex gap-2">
+                                            <Can permission="export-dtr">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button type="button" variant="outline" size="sm" className="border-black dark:border-white">
+                                                            <FileDown className="h-4 w-4" />
+                                                            Export Selected
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={history.exportSelectedAsPdf}>
+                                                            <FileDown className="h-4 w-4" />
+                                                            Export as PDF
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={history.exportSelectedAsCsv}>
+                                                            <FileDown className="h-4 w-4" />
+                                                            Export as CSV
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </Can>
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => history.clearSelection()}>
+                                                Clear
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="hidden md:block">
                                     <div className="overflow-x-auto rounded-lg border">
                                         <table className="min-w-full text-sm">
                                             <thead className="bg-muted/30 text-left text-muted-foreground">
                                                 <tr>
+                                                    <th className="w-10 px-2 py-3">
+                                                        <Checkbox
+                                                            checked={history.isAllSelected}
+                                                            onCheckedChange={history.toggleSelectAll}
+                                                        />
+                                                    </th>
                                                     <th className="px-4 py-3 font-medium">
                                                         Employee
                                                     </th>
@@ -102,8 +151,14 @@ export default function SummaryPageContent({
                                                     return (
                                                         <tr
                                                             key={dtr.id}
-                                                            className="border-b align-top last:border-b-0 odd:bg-muted/10"
+                                                            className="border-b align-middle last:border-b-0 odd:bg-muted/10"
                                                         >
+                                                            <td className="w-10 px-2 py-3">
+                                                                <Checkbox
+                                                                    checked={history.selectedIds.has(dtr.id)}
+                                                                    onCheckedChange={() => history.toggleSelect(dtr.id)}
+                                                                />
+                                                            </td>
                                                             <td className="px-4 py-3 font-medium text-foreground">
                                                                 {
                                                                     dtr.employeeName
@@ -180,20 +235,28 @@ export default function SummaryPageContent({
                                                 key={dtr.id}
                                                 className="rounded-lg border p-4"
                                             >
-                                                <div className="space-y-1">
-                                                    <p className="font-medium text-foreground">
-                                                        {dtr.employeeName}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {dtr.monthLabel}{' '}
-                                                        {dtr.year}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Confirmed{' '}
-                                                        {formatConfirmedAt(
-                                                            dtr.confirmedAt,
-                                                        )}
-                                                    </p>
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-3">
+                                                            <Checkbox
+                                                                checked={history.selectedIds.has(dtr.id)}
+                                                                onCheckedChange={() => history.toggleSelect(dtr.id)}
+                                                            />
+                                                            <p className="font-medium text-foreground">
+                                                                {dtr.employeeName}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {dtr.monthLabel}{' '}
+                                                            {dtr.year}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Confirmed{' '}
+                                                            {formatConfirmedAt(
+                                                                dtr.confirmedAt,
+                                                            )}
+                                                        </p>
+                                                    </div>
                                                 </div>
 
                                                 <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">

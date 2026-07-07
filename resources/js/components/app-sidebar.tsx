@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Calculator, FileText, Shield, Trophy, Users } from 'lucide-react';
+import { Calculator, FileText, ScrollText, Shield, Trophy, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -16,6 +16,7 @@ import { index as calculateIndex } from '@/routes/calculate';
 import { index as employeesIndex } from '@/routes/employees';
 import { index as rankingIndex } from '@/routes/ranking';
 import { index as summaryIndex } from '@/routes/summary';
+import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as usersIndex } from '@/routes/users';
 import { useAuth } from '@/hooks/use-auth';
 import type { NavItem } from '@/types';
@@ -26,6 +27,7 @@ const ALL_NAV_ITEMS: (NavItem & { permission?: string })[] = [
     { title: 'Summary', href: summaryIndex(), icon: FileText, permission: 'view-summary' },
     { title: 'Ranking', href: rankingIndex(), icon: Trophy, permission: 'view-ranking' },
     { title: 'Users', href: usersIndex(), icon: Shield, permission: 'manage-users' },
+    { title: 'Audit Logs', href: auditLogsIndex(), icon: ScrollText, permission: 'view-audit-logs' },
 ];
 
 const permissionMap: Record<string, string> = {};

@@ -2,10 +2,19 @@
 
 namespace App\Providers;
 
+use App\Listeners\AuditLogSubscriber;
+use App\Models\Dtr;
+use App\Models\DtrEntry;
+use App\Models\Employee;
 use App\Models\User;
+use App\Observers\DtrEntryObserver;
+use App\Observers\DtrObserver;
+use App\Observers\EmployeeObserver;
+use App\Observers\UserObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +42,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-admin-ui', function (User $user) {
             return $user->isAdmin();
         });
+
+        Employee::observe(EmployeeObserver::class);
+        User::observe(UserObserver::class);
+        Dtr::observe(DtrObserver::class);
+        DtrEntry::observe(DtrEntryObserver::class);
+
+        Event::subscribe(AuditLogSubscriber::class);
     }
 
     /**

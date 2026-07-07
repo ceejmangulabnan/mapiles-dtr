@@ -9,6 +9,7 @@ export type EmployeeScheduleGroup = {
 
 export type EmployeeRow = {
     id: string;
+    status: string;
     firstName: string;
     middleName: string | null;
     lastName: string;

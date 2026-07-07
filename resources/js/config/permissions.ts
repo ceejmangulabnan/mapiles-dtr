@@ -11,7 +11,8 @@ export type Permission =
     | 'manage-users'
     | 'delete-users'
     | 'export-dtr'
-    | 'delete-dtr';
+    | 'delete-dtr'
+    | 'view-audit-logs';
 
 const PERMISSIONS: Record<Role, Permission[]> = {
     admin: [
@@ -25,6 +26,7 @@ const PERMISSIONS: Record<Role, Permission[]> = {
         'delete-users',
         'export-dtr',
         'delete-dtr',
+        'view-audit-logs',
     ],
     management: [
         'view-employees',

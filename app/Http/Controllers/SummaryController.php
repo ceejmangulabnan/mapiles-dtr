@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dtr;
+use App\Services\Audit\AuditLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class SummaryController extends Controller
 {
+    public function __construct(protected AuditLogger $auditLogger) {} 
+
     public function index(): Response
     {
 
@@ -131,6 +134,76 @@ class SummaryController extends Controller
                 ];
             })->values()->all(),
         ])->setPaper('a4', 'portrait');
+
+        $this->auditLogger->log('export-dtr-pdf', $dtr);
+
+        return new HttpResponse($pdf->stream($filename), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function batchExport(Request $request): HttpResponse
+    {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return new HttpResponse('You are not authorized to export employee DTRs.', 403);
+        }
+
+        $ids = $request->input('ids', []);
+
+        if (! is_array($ids) || count($ids) === 0) {
+            return new HttpResponse('No DTRs selected for export.', 400);
+        }
+
+        $dtrs = Dtr::query()
+            ->with(['employee', 'entries' => fn ($q) => $q->orderBy('work_date')])
+            ->whereIn('id', $ids)
+            ->get();
+
+        if ($dtrs->isEmpty()) {
+            return new HttpResponse('No DTRs found for the given IDs.', 404);
+        }
+
+        $pdf = Pdf::loadView('pdf.dtr-summary-batch', [
+            'dtrs' => $dtrs->map(function (Dtr $dtr): array {
+                $periodDate = $this->resolvedPeriodDate($dtr);
+                $employeeName = $dtr->employee?->first_name !== null
+                    ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
+                    : 'Unknown employee';
+
+                return [
+                    'employeeName' => $employeeName,
+                    'monthLabel' => $periodDate->format('F'),
+                    'year' => (int) $periodDate->year,
+                    'totalDays' => $dtr->total_days,
+                    'totalWorkedMinutes' => $dtr->total_worked_minutes,
+                    'regularAmount' => $this->resolvedRegularAmount($dtr),
+                    'dailyRateBasis' => $this->resolvedDailyRateBasis($dtr),
+                    'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->toISOString(),
+                    'totalOvertimeMinutes' => (int) $dtr->total_overtime_minutes,
+                    'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
+                    'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
+                    'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
+                    'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
+                    'entries' => $dtr->entries->map(fn ($entry): array => [
+                        'label' => Carbon::parse($entry->work_date)->format('M j'),
+                        'weekday' => Carbon::parse($entry->work_date)->format('l'),
+                        'timeIn' => $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '',
+                        'timeOut' => $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '',
+                        'holidayType' => (string) $entry->holiday_type,
+                        'workedMinutes' => (int) $entry->worked_minutes,
+                        'rate' => $entry->rate !== null ? (string) $entry->rate : '',
+                    ])->values()->all(),
+                ];
+            })->values()->all(),
+        ])->setPaper('a4', 'portrait');
+
+        $filename = 'dtr-batch-export-' . now()->format('Y-m-d-His') . '.pdf';
+
+        $this->auditLogger->logWithoutModel('export-dtr-pdf-batch', [
+            'count' => $dtrs->count(),
+            'dtr_ids' => $ids,
+        ]);
 
         return new HttpResponse($pdf->stream($filename), 200, [
             'Content-Type' => 'application/pdf',
