@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\HasUuidPrimaryKey;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -24,6 +25,7 @@ class User extends Authenticatable
     use HasUuids;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use HasUuidPrimaryKey;
 
     protected function casts(): array
     {
