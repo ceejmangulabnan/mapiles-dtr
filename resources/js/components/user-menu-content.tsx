@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Moon, Monitor, Settings, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -20,7 +20,6 @@ type Props = {
 const themeOptions: { value: Appearance; icon: typeof Sun; label: string }[] = [
     { value: 'light', icon: Sun, label: 'Light' },
     { value: 'dark', icon: Moon, label: 'Dark' },
-    { value: 'system', icon: Monitor, label: 'System' },
 ];
 
 export function UserMenuContent({ user }: Props) {
