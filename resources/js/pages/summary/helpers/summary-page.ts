@@ -15,8 +15,8 @@ export type SummaryDtrEntry = {
 };
 
 export type SummaryDtr = {
-    id: number;
-    employeeId: number;
+    id: string;
+    employeeId: string;
     employeeName: string;
     month: number;
     monthLabel: string;
@@ -46,8 +46,8 @@ export const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export const dtrPath = (dtrId: number) => `/summary/${dtrId}`;
-export const dtrExportPath = (dtrId: number) => `/summary/${dtrId}/export`;
+export const dtrPath = (dtrId: string) => `/summary/${dtrId}`;
+export const dtrExportPath = (dtrId: string) => `/summary/${dtrId}/export`;
 
 export function formatConfirmedAt(value: string | null): string {
     if (!value) {

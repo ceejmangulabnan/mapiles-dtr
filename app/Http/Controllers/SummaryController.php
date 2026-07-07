@@ -81,7 +81,6 @@ class SummaryController extends Controller
             return new HttpResponse('You are not authorized to export employee DTRs.', 403);
         }
 
-
         $dtr->load(['employee', 'entries' => fn ($query) => $query->orderBy('work_date')]);
 
         $periodDate = $this->resolvedPeriodDate($dtr);

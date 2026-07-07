@@ -25,7 +25,7 @@ import type {SummaryDtr} from '../helpers/summary-page';
 
 type DtrDetailsDialogProps = {
     dtr: SummaryDtr | null;
-    deletingId: number | null;
+    deletingId: string | null;
     open: boolean;
     onDelete: (dtr: SummaryDtr) => void;
     onOpenChange: (open: boolean) => void;

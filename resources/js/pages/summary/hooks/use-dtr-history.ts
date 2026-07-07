@@ -40,7 +40,7 @@ function escapeHtml(value: string): string {
 export function useDtrHistory(dtrs: SummaryDtr[]) {
     const [selectedDtr, setSelectedDtr] = useState<SummaryDtr | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-    const [deletingDtrId, setDeletingDtrId] = useState<number | null>(null);
+    const [deletingDtrId, setDeletingDtrId] = useState<string | null>(null);
 
     const overview = {
         totalDtrs: dtrs.length,

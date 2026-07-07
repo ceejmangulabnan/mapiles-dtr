@@ -66,7 +66,7 @@ class CalculateController extends Controller
 
     public function index(Request $request): Response
     {
-        $selectedEmployeeId = $request->input('employee');
+        $selectedEmployeeId = $request->query('employee') ?: null;
         $selectedMonth = $request->integer('month') ?: (int) now()->month;
         $selectedYear = $request->integer('year') ?: (int) now()->year;
         $selectedCalendarRange = $this->resolvedCalendarRange(

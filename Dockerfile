@@ -9,8 +9,12 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     zip \
-    && docker-php-ext-install pdo_pgsql zip \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_pgsql zip gd \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -22,8 +26,17 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm install
-RUN npm run build
+
+# Generate wayfinder route/action TypeScript files before Vite build.
+# Since .env is in .dockerignore, create a minimal env so artisan commands work.
+RUN cp .env.example .env && \
+    php artisan key:generate && \
+    php artisan wayfinder:generate && \
+    rm .env
+
+RUN npm cache clean --force && \
+    npm install --include=optional --platform=linux --arch=x64 && \
+    npm run build
 
 
 FROM php:8.3-fpm
@@ -34,11 +47,12 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     curl \
-    gnupg \
     ca-certificates \
-    && docker-php-ext-install pdo_pgsql zip \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_pgsql zip gd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -46,17 +60,15 @@ WORKDIR /var/www/html
 
 COPY --from=builder /var/www/html /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+RUN mkdir -p /var/www/html/storage/fonts && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-COPY nginx.conf /etc/nginx/sites-available/default
+COPY nginx.conf /etc/nginx/sites-enabled/default
 
 EXPOSE 10000
 
-CMD sh -c "php artisan config:cache && \
-php artisan route:cache && \
-php artisan view:cache && \
-php artisan migrate --force || echo 'Migration skipped (no database)' && \
-sed -i 's/listen 80;/listen '"${PORT:-80}"';/' /etc/nginx/sites-available/default && \
-php-fpm -D && \
-nginx -g 'daemon off;'"
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
