@@ -10,7 +10,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    formatRateAmount,
     formatWorkedDuration,
     getOvertimeAmount,
     getOvertimeMinutes,
@@ -160,9 +159,9 @@ export default function DailyAttendanceRow({
                 <div className="space-y-2 sm:col-span-2">
                     <Label>Overtime</Label>
                     <div className="inline-flex h-10 w-full items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
-                        {overtimeMinutes > 0
-                            ? formatRateAmount(overtimeAmount)
-                            : '--'}
+                    {overtimeMinutes > 0
+                        ? overtimeAmount.toFixed(2)
+                        : '--'}
                     </div>
                 </div>
             </div>

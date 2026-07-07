@@ -9,7 +9,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    formatRateAmount,
     formatWorkedDuration,
     getOvertimeAmount,
     getOvertimeMinutes,
@@ -144,7 +143,7 @@ export default function DailyAttendanceTableRow({
             <td className="px-3 py-3 align-middle">
                 <div className="inline-flex h-10 min-w-[100px] items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
                     {overtimeMinutes > 0
-                        ? formatRateAmount(overtimeAmount)
+                        ? overtimeAmount.toFixed(2)
                         : '--'}
                 </div>
             </td>
