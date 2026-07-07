@@ -65,6 +65,10 @@ class UserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        if ($request->user()->is($user)) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
         $user->delete();
 
         return to_route('users.index')->with('success', 'User deleted successfully.');

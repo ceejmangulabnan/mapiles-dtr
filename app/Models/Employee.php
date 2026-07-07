@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\UserStatus;
+use App\Models\Concerns\Auditable;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,12 +27,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'weekly_schedule',
     'user_id',
     'created_by',
-    'updated_by'
+    'updated_by',
+    'status'
 ])]
 class Employee extends Model
 {
     /** @use HasFactory<EmployeeFactory> */
-    use HasFactory, HasUuids, SoftDeletes;
+    use Auditable, HasFactory, HasUuids, SoftDeletes;
+
+    protected array $auditIgnore = ['updated_at'];
 
     public function user(): BelongsTo
     {
@@ -47,11 +52,6 @@ class Employee extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -61,6 +61,7 @@ class Employee extends Model
             'employment_end_date' => 'date',
             'work_days' => 'array',
             'weekly_schedule' => 'array',
+            'status' => UserStatus::class,
         ];
     }
 }

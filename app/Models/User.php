@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -20,10 +21,13 @@ use App\Enums\UserStatus;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
+    use Auditable;
     use HasFactory;
     use HasUuids;
     use Notifiable;
     use TwoFactorAuthenticatable;
+
+    protected array $auditIgnore = ['updated_at', 'remember_token'];
 
     protected function casts(): array
     {

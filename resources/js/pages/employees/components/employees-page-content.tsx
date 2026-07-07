@@ -1,6 +1,7 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import { Can } from '@/components/can';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -9,15 +10,42 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import {
     breadcrumbs,
     formatDaySet,
     formatTime,
 } from '../helpers/employees-page';
-import type { EmployeesPageProps } from '../helpers/employees-page';
+import type { EmployeesPageProps, EmployeeRow } from '../helpers/employees-page';
 import { useEmployeeDialog } from '../hooks/use-employee-dialog';
+import { updateStatus } from '@/routes/employees';
 import EmployeeDialog from './employee-dialog';
+
+const statusColor = (status: string) => {
+    switch (status) {
+        case 'active':
+            return 'border-transparent bg-emerald-600 text-white';
+        case 'probation':
+            return 'border-transparent bg-amber-500 text-white';
+        case 'suspended':
+            return 'border-transparent bg-orange-500 text-white';
+        case 'resigned':
+            return 'border-transparent bg-gray-500 text-white';
+        case 'terminated':
+            return 'border-transparent bg-red-600 text-white';
+        case 'retired':
+            return 'border-transparent bg-blue-600 text-white';
+        default:
+            return '';
+    }
+};
 
 export default function EmployeesPageContent({
     successMessage = null,
@@ -26,6 +54,10 @@ export default function EmployeesPageContent({
     summary,
 }: EmployeesPageProps) {
     const dialog = useEmployeeDialog();
+
+    const handleStatusChange = (employee: EmployeeRow, newStatus: string) => {
+        router.patch(updateStatus({ employee: employee.id }).url, { status: newStatus });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -99,6 +131,9 @@ export default function EmployeesPageContent({
                                             <th className="px-4 py-3 font-medium">
                                                 Weekly schedule
                                             </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Status
+                                            </th>
                                             <Can permission="manage-employees">
                                                 <th className="px-4 py-3 font-medium">
                                                     Actions
@@ -135,9 +170,53 @@ export default function EmployeesPageContent({
                                                         )}
                                                     </div>
                                                 </td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <Badge
+                                                        className={`capitalize ${statusColor(employee.status)}`}
+                                                    >
+                                                        {employee.status}
+                                                    </Badge>
+                                                </td>
                                                 <Can permission="manage-employees">
                                                     <td className="px-4 py-4 align-top">
                                                         <div className="flex flex-wrap gap-2">
+                                                            <Select
+                                                                value={
+                                                                    employee.status
+                                                                }
+                                                                onValueChange={(
+                                                                    value,
+                                                                ) =>
+                                                                    handleStatusChange(
+                                                                        employee,
+                                                                        value,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="h-8 w-36">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="active">
+                                                                        Active
+                                                                    </SelectItem>
+                                                                    <SelectItem value="probation">
+                                                                        Probation
+                                                                    </SelectItem>
+                                                                    <SelectItem value="resigned">
+                                                                        Resigned
+                                                                    </SelectItem>
+                                                                    <SelectItem value="terminated">
+                                                                        Terminated
+                                                                    </SelectItem>
+                                                                    <SelectItem value="suspended">
+                                                                        Suspended
+                                                                    </SelectItem>
+                                                                    <SelectItem value="retired">
+                                                                        Retired
+                                                                    </SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
                                                             <Button
                                                                 type="button"
                                                                 size="sm"

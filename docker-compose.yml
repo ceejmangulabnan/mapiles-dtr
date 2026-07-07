@@ -1,7 +1,28 @@
-version: '3.8'
-
 services:
-  # Main Application Container (Laravel Backend + Vite Frontend)
+  # =========================================================================
+  # 1. LOCAL DEVELOPMENT ENVIRONMENT (Your Safe Sandbox)
+  # =========================================================================
+  app-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: mapiles_dtr_app_local
+    restart: no
+    ports:
+      - "8000:8000"
+      - "5173:5173"
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # =========================================================================
+  # 2. ORIGINAL DEPLOYMENT/PRODUCTION-LIKE SIMULATION
+  # =========================================================================
   app:
     build:
       context: .
@@ -9,8 +30,8 @@ services:
     container_name: mapiles_dtr_app
     restart: no
     ports:
-      - "8000:80"  # Exposes Laravel server
-      - "5173:5173"  # Exposes Vite Hot-Reloading server
+      - "8080:80"
+      - "5174:5173"
     volumes:
       - .:/var/www/html
     environment:
@@ -23,17 +44,16 @@ services:
     depends_on:
       - db
 
-  # Database Container
   db:
     image: postgres:16
     container_name: mapiles_dtr_db
     restart: always
     environment:
-      POSTGRES_DB: mapiles_dtr
+      POSTGRES_DB: mapiles_v1
       POSTGRES_USER: dtr_user
       POSTGRES_PASSWORD: dtr_secure_pass
     ports:
-      - "5432:5432"  # Exposes database port
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

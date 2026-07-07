@@ -1,0 +1,17 @@
+FROM php:8.3-fpm
+
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    git \
+    unzip \
+    zip
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install pdo pdo_pgsql pgsql
+
+WORKDIR /var/www/html
+
+EXPOSE 8000 5173
+
+CMD php artisan serve --host=0.0.0.0 --port=8000

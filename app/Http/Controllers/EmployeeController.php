@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserStatusRequest;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Models\Employee;
@@ -59,6 +60,19 @@ class EmployeeController extends Controller
         return to_route('employees.index')->with('success', 'Employee deleted successfully.');
     }
 
+    public function updateStatus(UpdateUserStatusRequest $request, Employee $employee): RedirectResponse
+    {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $employee->update([
+            'status' => $request->input('status'),
+        ]);
+
+        return to_route('employees.index')->with('success', 'Employee status updated successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -93,6 +107,7 @@ class EmployeeController extends Controller
 
             return [
                 'id' => $employee->id,
+                'status' => $employee->status?->value ?? 'active',
                 'firstName' => (string) $employee->first_name,
                 'middleName' => $employee->middle_name,
                 'lastName' => (string) $employee->last_name,

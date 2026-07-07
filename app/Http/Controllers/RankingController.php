@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Dtr;
 use App\Models\DtrEntry;
 use App\Models\Employee;
+use App\Services\Audit\AuditLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,8 @@ use Inertia\Response;
 
 class RankingController extends Controller
 {
+    public function __construct(protected AuditLogger $auditLogger) {}
+
     public function index(Request $request): Response
     {
         $prepared = $this->prepareRankingData($request);
@@ -49,6 +52,57 @@ class RankingController extends Controller
             'periodLabel' => $periodLabel,
             'rankings' => $prepared['rankings'],
         ])->setPaper('a4', 'landscape');
+
+        $this->auditLogger->logWithoutModel('export-ranking-pdf', [
+            'month' => $prepared['month'],
+            'year' => $prepared['year'],
+            'calendar_range' => $prepared['calendarRange'],
+            'employee_count' => count($prepared['rankings']),
+        ]);
+
+        return new HttpResponse($pdf->stream($filename), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function batchExport(Request $request): HttpResponse
+    {
+        $prepared = $this->prepareRankingData($request);
+        $employeeIds = $request->input('employeeIds', []);
+
+        if (! is_array($employeeIds) || count($employeeIds) === 0) {
+            return new HttpResponse('No employees selected for export.', 400);
+        }
+
+        $filteredRankings = collect($prepared['rankings'])
+            ->filter(fn (array $r) => in_array($r['employeeId'], $employeeIds))
+            ->values()
+            ->all();
+
+        $periodLabel = $this->rankingPeriodLabel(
+            $prepared['month'],
+            $prepared['year'],
+            $prepared['calendarRange'],
+        );
+
+        $filename = sprintf(
+            'ranking-batch-%s-%s.pdf',
+            $prepared['year'],
+            str_pad((string) $prepared['month'], 2, '0', STR_PAD_LEFT),
+        );
+
+        $pdf = Pdf::loadView('pdf.ranking-summary', [
+            'periodLabel' => $periodLabel,
+            'rankings' => $filteredRankings,
+        ])->setPaper('a4', 'landscape');
+
+        $this->auditLogger->logWithoutModel('export-ranking-pdf-batch', [
+            'month' => $prepared['month'],
+            'year' => $prepared['year'],
+            'calendar_range' => $prepared['calendarRange'],
+            'employee_ids' => $employeeIds,
+        ]);
 
         return new HttpResponse($pdf->stream($filename), 200, [
             'Content-Type' => 'application/pdf',

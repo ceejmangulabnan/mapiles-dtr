@@ -28,6 +28,17 @@ function downloadCsv(filename: string, csv: string) {
     URL.revokeObjectURL(downloadUrl);
 }
 
+function logCsvExport(resource: string, details: Record<string, unknown> = {}) {
+    const tokenEl = document.querySelector('meta[name=csrf-token]');
+    const token = tokenEl?.getAttribute('content') || '';
+
+    fetch('/audit-logs/log-export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
+        body: JSON.stringify({ type: 'csv', resource, details }),
+    }).catch(() => {});
+}
+
 function escapeHtml(value: string): string {
     return value
         .replaceAll('&', '&amp;')
@@ -41,6 +52,28 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     const [selectedDtr, setSelectedDtr] = useState<SummaryDtr | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [deletingDtrId, setDeletingDtrId] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) { next.delete(id); } else { next.add(id); }
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === dtrs.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(dtrs.map((d) => d.id)));
+        }
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const selectionCount = selectedIds.size;
+    const isAllSelected = selectionCount === dtrs.length && dtrs.length > 0;
 
     const overview = {
         totalDtrs: dtrs.length,
@@ -109,7 +142,88 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     };
 
     const exportDtrAsPdf = (dtr: SummaryDtr) => {
-        window.open(dtrExportPath(dtr.id), '_blank');
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = dtrExportPath(dtr.id);
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 60000);
+    };
+
+    const exportSelectedAsPdf = () => {
+        const ids = dtrs.filter((d) => selectedIds.has(d.id)).map((d) => d.id);
+        if (ids.length === 0) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/summary/batch-export';
+        form.style.display = 'none';
+
+        const token = document.createElement('input');
+        token.name = '_token';
+        token.value = csrfToken || '';
+        form.appendChild(token);
+
+        ids.forEach((id) => {
+            const input = document.createElement('input');
+            input.name = 'ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => document.body.removeChild(form), 1000);
+    };
+
+    const exportSelectedAsCsv = () => {
+        const selected = dtrs.filter((d) => selectedIds.has(d.id));
+        if (selected.length === 0) return;
+
+        const allMetaRows: Record<string, string>[] = [];
+        const allSummaryRows: Record<string, string>[] = [];
+        const allEntryRows: Record<string, string>[] = [];
+
+        selected.forEach((dtr) => {
+            allMetaRows.push(
+                { key: 'Employee', value: dtr.employeeName },
+                { key: 'Period', value: `${dtr.monthLabel} ${dtr.year}` },
+                { key: '', value: '' },
+            );
+            allSummaryRows.push({
+                Employee: dtr.employeeName,
+                Period: `${dtr.monthLabel} ${dtr.year}`,
+                'Total Days': String(dtr.totalDays),
+                'Total Hours': formatWorkedDuration(dtr.totalWorkedMinutes),
+                'Regular Pay': formatRateAmount(dtr.regularAmount),
+                'Overtime Pay': formatRateAmount(dtr.totalOvertimeAmount),
+                'SSS Deduction': formatRateAmount(dtr.sssDeduction),
+                'Pag-IBIG Deduction': formatRateAmount(dtr.pagibigDeduction),
+                'Net Pay': formatRateAmount(dtr.totalAmount),
+            });
+            dtr.entries.forEach((entry) => {
+                allEntryRows.push({
+                    Employee: dtr.employeeName,
+                    Period: `${dtr.monthLabel} ${dtr.year}`,
+                    Date: entry.label,
+                    Day: entry.weekday,
+                    'Time In': entry.timeIn || '--',
+                    'Time Out': entry.timeOut || '--',
+                    Holiday: getHolidayLabel(entry.holidayType),
+                    Hours: formatWorkedDuration(entry.workedMinutes),
+                    Rate: formatRateAmount(entry.rate || '0'),
+                });
+            });
+        });
+
+        const metaCsv = Papa.unparse(allMetaRows);
+        const summaryCsv = Papa.unparse(allSummaryRows);
+        const entriesCsv = Papa.unparse(allEntryRows);
+        const csv = `${metaCsv}\n\n${summaryCsv}\n\n${entriesCsv}`;
+
+        const filename = `dtr-batch-${new Date().toISOString().slice(0, 10)}.csv`;
+        downloadCsv(filename, csv);
+
+        logCsvExport('dtr-batch', { count: selected.length });
     };
 
     const exportDtrAsCsv = (dtr: SummaryDtr) => {
@@ -146,6 +260,8 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
         const csv = `${metaCsv}\n\n${summaryCsv}\n\n${entriesCsv}`;
 
         downloadCsv(filename, csv);
+
+        logCsvExport('dtr', { employeeId: dtr.employeeId, period: `${dtr.monthLabel} ${dtr.year}` });
     };
 
     const printDtr = (dtr: SummaryDtr) => {
@@ -269,17 +385,25 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     };
 
     return {
+        clearSelection,
         deleteDtr,
         deletingDtrId,
         exportDtrAsCsv,
         exportDtrAsPdf,
+        exportSelectedAsCsv,
+        exportSelectedAsPdf,
         handleDetailsDialogChange,
+        isAllSelected,
         isDetailsDialogOpen,
         openDtr,
         overview,
         printDtr,
         reopenDtr,
         selectedDtr,
+        selectedIds,
+        selectionCount,
+        toggleSelect,
+        toggleSelectAll,
     };
 }
 
