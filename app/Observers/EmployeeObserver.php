@@ -7,9 +7,7 @@ use App\Services\Audit\AuditLogger;
 
 class EmployeeObserver
 {
-    public function __construct(protected AuditLogger $logger)
-    {
-    }
+    public function __construct(protected AuditLogger $logger) {}
 
     public function created(Employee $employee): void
     {

@@ -14,11 +14,10 @@ use Inertia\Response;
 
 class SummaryController extends Controller
 {
-    public function __construct(protected AuditLogger $auditLogger) {} 
+    public function __construct(protected AuditLogger $auditLogger) {}
 
     public function index(): Response
     {
-
 
         $dtrRecords = Dtr::query()
             ->with([
@@ -201,7 +200,7 @@ class SummaryController extends Controller
             })->values()->all(),
         ])->setPaper('a4', 'portrait');
 
-        $filename = 'dtr-batch-export-' . now()->format('Y-m-d-His') . '.pdf';
+        $filename = 'dtr-batch-export-'.now()->format('Y-m-d-His').'.pdf';
 
         $this->auditLogger->logWithoutModel('export-dtr-pdf-batch', [
             'count' => $dtrs->count(),
