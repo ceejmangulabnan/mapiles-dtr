@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\AuditLog;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -13,12 +14,14 @@ use Laravel\Fortify\Events\PasswordUpdatedViaController;
 
 class AuditLogSubscriber
 {
-    public function __construct(protected AuditLogger $logger)
-    {
-    }
+    public function __construct(protected AuditLogger $logger) {}
 
     public function handleLogin(Login $event): void
     {
+        if ($this->alreadyLogged('login', $event->user->getKey())) {
+            return;
+        }
+
         $this->logger->logWithoutModel('login', [
             'email' => $event->user->email,
         ]);
@@ -26,6 +29,10 @@ class AuditLogSubscriber
 
     public function handleLogout(Logout $event): void
     {
+        if ($this->alreadyLogged('logout', $event->user->getKey())) {
+            return;
+        }
+
         $this->logger->logWithoutModel('logout', [
             'email' => $event->user->email,
         ]);
@@ -57,6 +64,15 @@ class AuditLogSubscriber
         $this->logger->logWithoutModel('verified', [
             'email' => $event->user->email,
         ]);
+    }
+
+    protected function alreadyLogged(string $action, int|string $userId): bool
+    {
+        return AuditLog::where('action', $action)
+            ->where('user_id', $userId)
+            ->where('auditable_type', 'auth')
+            ->where('created_at', '>=', now()->subSeconds(5))
+            ->exists();
     }
 
     public function subscribe(Dispatcher $events): void
