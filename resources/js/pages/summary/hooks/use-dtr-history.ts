@@ -160,7 +160,7 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
 
         const token = document.createElement('input');
         token.name = '_token';
-        token.value = csrfToken || '';
+        token.value = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
         form.appendChild(token);
 
         ids.forEach((id) => {
