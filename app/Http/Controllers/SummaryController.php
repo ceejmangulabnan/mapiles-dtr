@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use ZipArchive;
 
 class SummaryController extends Controller
 {
@@ -106,6 +107,8 @@ class SummaryController extends Controller
             str_pad((string) $month, 2, '0', STR_PAD_LEFT),
         );
 
+        $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
+
         $pdf = Pdf::loadView('pdf.dtr-summary', [
             'employeeName' => $employeeName,
             'monthLabel' => $monthLabel,
@@ -120,6 +123,7 @@ class SummaryController extends Controller
             'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
             'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
+            'watermarkLabel' => $watermarkLabel,
             'entries' => $dtr->entries->map(function ($entry): array {
                 $workDate = Carbon::parse($entry->work_date);
 
@@ -166,50 +170,82 @@ class SummaryController extends Controller
             return new HttpResponse('No DTRs found for the given IDs.', 404);
         }
 
-        $pdf = Pdf::loadView('pdf.dtr-summary-batch', [
-            'dtrs' => $dtrs->map(function (Dtr $dtr): array {
-                $periodDate = $this->resolvedPeriodDate($dtr);
-                $employeeName = $dtr->employee?->first_name !== null
-                    ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
-                    : 'Unknown employee';
+        $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
 
-                return [
-                    'employeeName' => $employeeName,
-                    'monthLabel' => $periodDate->format('F'),
-                    'year' => (int) $periodDate->year,
-                    'totalDays' => $dtr->total_days,
-                    'totalWorkedMinutes' => $dtr->total_worked_minutes,
-                    'regularAmount' => $this->resolvedRegularAmount($dtr),
-                    'dailyRateBasis' => $this->resolvedDailyRateBasis($dtr),
-                    'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->tz('Asia/Manila')->format('M j, Y, g:i A'),
-                    'totalOvertimeMinutes' => (int) $dtr->total_overtime_minutes,
-                    'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
-                    'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
-                    'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
-                    'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
-                    'entries' => $dtr->entries->map(fn ($entry): array => [
-                        'label' => Carbon::parse($entry->work_date)->format('M j'),
-                        'weekday' => Carbon::parse($entry->work_date)->format('l'),
+        $zip = new ZipArchive;
+        $zipPath = tempnam(sys_get_temp_dir(), 'dtr-batch-') . '.zip';
+
+        if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
+            return new HttpResponse('Could not create ZIP archive.', 500);
+        }
+
+        foreach ($dtrs as $dtr) {
+            $periodDate = $this->resolvedPeriodDate($dtr);
+            $month = (int) $periodDate->month;
+            $year = (int) $periodDate->year;
+            $monthLabel = $periodDate->format('F');
+            $employeeName = $dtr->employee?->first_name !== null
+                ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
+                : 'Unknown employee';
+            $regularAmount = $this->resolvedRegularAmount($dtr);
+            $dailyRateBasis = $this->resolvedDailyRateBasis($dtr);
+
+            $filename = sprintf(
+                'dtr-%s-%s-%s.pdf',
+                preg_replace('/[^a-z0-9]+/', '-', strtolower($employeeName)),
+                $year,
+                str_pad((string) $month, 2, '0', STR_PAD_LEFT),
+            );
+
+            $pdf = Pdf::loadView('pdf.dtr-summary', [
+                'employeeName' => $employeeName,
+                'monthLabel' => $monthLabel,
+                'year' => $year,
+                'totalDays' => $dtr->total_days,
+                'totalWorkedMinutes' => $dtr->total_worked_minutes,
+                'regularAmount' => $regularAmount,
+                'dailyRateBasis' => $dailyRateBasis,
+                'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->tz('Asia/Manila')->format('M j, Y, g:i A'),
+                'totalOvertimeMinutes' => (int) $dtr->total_overtime_minutes,
+                'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
+                'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
+                'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
+                'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
+                'watermarkLabel' => $watermarkLabel,
+                'entries' => $dtr->entries->map(function ($entry): array {
+                    $workDate = Carbon::parse($entry->work_date);
+
+                    return [
+                        'date' => $workDate->toDateString(),
+                        'label' => $workDate->format('M j'),
+                        'weekday' => $workDate->format('l'),
                         'timeIn' => $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '',
                         'timeOut' => $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '',
                         'holidayType' => (string) $entry->holiday_type,
                         'workedMinutes' => (int) $entry->worked_minutes,
+                        'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
                         'rate' => $entry->rate !== null ? (string) $entry->rate : '',
-                    ])->values()->all(),
-                ];
-            })->values()->all(),
-        ])->setPaper('a4', 'portrait');
+                    ];
+                })->values()->all(),
+            ])->setPaper('a4', 'portrait');
 
-        $filename = 'dtr-batch-export-'.now()->format('Y-m-d-His').'.pdf';
+            $pdfContent = $pdf->output();
+            $zip->addFromString($filename, $pdfContent);
+        }
+
+        $zip->close();
+
+        $zipFilename = 'dtr-batch-export-' . now()->format('Y-m-d-His') . '.zip';
 
         $this->auditLogger->logWithoutModel('export-dtr-pdf-batch', [
             'count' => $dtrs->count(),
             'dtr_ids' => $ids,
         ]);
 
-        return new HttpResponse($pdf->stream($filename), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        return new HttpResponse(file_get_contents($zipPath), 200, [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="' . $zipFilename . '"',
+            'Content-Length' => filesize($zipPath),
         ]);
     }
 

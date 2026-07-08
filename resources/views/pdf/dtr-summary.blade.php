@@ -90,10 +90,25 @@
             background: #f9fafb;
             font-size: 12px;
         }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(180, 180, 180, 0.35);
+            letter-spacing: 6px;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
 <body>
+    <div class="watermark">{{ $watermarkLabel }}</div>
     <div class="header">
         <div class="header-left">
             <h1>DTR Summary</h1>

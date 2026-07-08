@@ -30,14 +30,28 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; font-size: 12px; }
         th { background: #f3f4f6; }
-        .meta-grid { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; }
-        .meta-card { border: 1px solid #d1d5db; padding: 10px 14px; min-width: 120px; flex: 1; }
-        .meta-label { color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .meta-value { margin-top: 4px; font-weight: 700; font-size: 15px; }
+        .meta-table { margin-top: 12px; width: 100%; border-collapse: collapse; }
+        .meta-table td { border: 1px solid #d1d5db; padding: 4px 10px; width: 33.33%; }
+        .meta-label { color: #6b7280; font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+        .meta-value { font-weight: 700; font-size: 12px; }
         .overtime-note { margin-top: 16px; padding: 12px; border: 1px solid #d1d5db; background: #f9fafb; font-size: 12px; }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(180, 180, 180, 0.35);
+            letter-spacing: 6px;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
+    <div class="watermark">{{ $watermarkLabel }}</div>
     @foreach ($dtrs as $i => $dtr)
         @if ($i > 0)
             <div class="page-break"></div>
@@ -55,36 +69,44 @@
             <img src="{{ public_path('mapiles-icon.png') }}" alt="Mapiles Logo" class="logo">
         </div>
 
-        <div class="meta-grid">
-            <div class="meta-card">
-                <div class="meta-label">Workdays</div>
-                <div class="meta-value">{{ $dtr['totalDays'] }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">Total hours</div>
-                <div class="meta-value">{{ floor($dtr['totalWorkedMinutes'] / 60) }}h{{ $dtr['totalWorkedMinutes'] % 60 > 0 ? ' ' . ($dtr['totalWorkedMinutes'] % 60) . 'm' : '' }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">Regular pay</div>
-                <div class="meta-value">PHP {{ number_format((float) $dtr['regularAmount'], 2) }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">Overtime pay</div>
-                <div class="meta-value">PHP {{ number_format((float) $dtr['totalOvertimeAmount'], 2) }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">SSS deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($dtr['sssDeduction'] ?? 0), 2) }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">Pag-IBIG deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($dtr['pagibigDeduction'] ?? 0), 2) }}</div>
-            </div>
-            <div class="meta-card">
-                <div class="meta-label">Total pay</div>
-                <div class="meta-value">PHP {{ number_format((float) $dtr['totalAmount'], 2) }}</div>
-            </div>
-        </div>
+        <table class="meta-table">
+            <tr>
+                <td>
+                    <div class="meta-label">Workdays</div>
+                    <div class="meta-value">{{ $dtr['totalDays'] }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">Total hours</div>
+                    <div class="meta-value">
+                        {{ floor($dtr['totalWorkedMinutes'] / 60) }}h{{ $dtr['totalWorkedMinutes'] % 60 > 0 ? ' ' . ($dtr['totalWorkedMinutes'] % 60) . 'm' : '' }}
+                    </div>
+                </td>
+                <td>
+                    <div class="meta-label">Regular pay</div>
+                    <div class="meta-value">PHP {{ number_format((float) $dtr['regularAmount'], 2) }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="meta-label">Overtime pay</div>
+                    <div class="meta-value">PHP {{ number_format((float) $dtr['totalOvertimeAmount'], 2) }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">SSS deduction</div>
+                    <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($dtr['sssDeduction'] ?? 0), 2) }}</div>
+                </td>
+                <td>
+                    <div class="meta-label">Pag-IBIG deduction</div>
+                    <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($dtr['pagibigDeduction'] ?? 0), 2) }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div class="meta-label">Total pay</div>
+                    <div class="meta-value">PHP {{ number_format((float) $dtr['totalAmount'], 2) }}</div>
+                </td>
+            </tr>
+        </table>
 
         @php
             $regularHolidays = array_filter($dtr['entries'], fn($e) => $e['holidayType'] === 'regularHoliday');

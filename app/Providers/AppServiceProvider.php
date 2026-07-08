@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Gate::define('access-admin-ui', function (User $user) {
-            return $user->isAdmin();
+            return $user->isAdmin() || $user->isManagement();
         });
 
         Employee::observe(EmployeeObserver::class);
