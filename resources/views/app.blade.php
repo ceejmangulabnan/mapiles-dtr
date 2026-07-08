@@ -39,6 +39,14 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+        <script>
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted && /^\/(login|register|forgot-password|reset-password)/.test(window.location.pathname)) {
+                    window.location.reload();
+                }
+            });
+        </script>
+
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead

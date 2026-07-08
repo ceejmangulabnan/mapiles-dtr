@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdateUserStatusRequest;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreEmployeeRequest;
+use App\Http\Requests\UpdateUserStatusRequest;
 use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +29,7 @@ class EmployeeController extends Controller
             return back()->with('error', 'You do not have permission to create employees.');
         }
 
-        $employee = new Employee();
+        $employee = new Employee;
         $employee->created_by = $request->user()->id;
         $employee->updated_by = $request->user()->id;
         $this->saveEmployee($employee, $request->validated());

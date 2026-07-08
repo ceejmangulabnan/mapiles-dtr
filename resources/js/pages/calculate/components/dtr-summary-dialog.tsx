@@ -158,6 +158,16 @@ export default function DtrSummaryDialog({
                             {summary.regularAmountLabel}
                         </p>
                     </div>
+                    {summary.holidayPremium > 0 && (
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50/50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
+                            <p className="text-sm text-muted-foreground">
+                                Holiday salary increase
+                            </p>
+                            <p className="mt-1 font-medium text-foreground">
+                                {summary.holidayPremiumLabel}
+                            </p>
+                        </div>
+                    )}
                     <div className="rounded-lg border p-4">
                         <p className="text-sm text-muted-foreground">
                             Total pay (gross)

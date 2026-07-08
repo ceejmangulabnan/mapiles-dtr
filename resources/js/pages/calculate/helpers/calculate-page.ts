@@ -385,6 +385,19 @@ export function getOvertimeMinutes(
     return Math.max(0, workedMinutes - scheduledWorkedMinutes);
 }
 
+/** Returns the overtime amount for a day: (overtimeMinutes / 60) * (dailyRate / 8) * (1 + premiumRate). */
+export function getOvertimeAmount(
+    overtimeMinutes: number,
+    dailyRate: string,
+): number {
+    if (overtimeMinutes <= 0) return 0;
+    const parsedDailyRate = Number(dailyRate);
+    if (!Number.isFinite(parsedDailyRate) || parsedDailyRate <= 0) return 0;
+    const hourlyRate = parsedDailyRate / workHoursPerDay;
+    const baseAmount = (overtimeMinutes / 60) * hourlyRate;
+    return baseAmount * (1 + overtimePremiumRate);
+}
+
 /** Converts minutes to a human-friendly string like "7h 30m" or "8h". */
 export function formatWorkedDuration(totalMinutes: number | null): string {
     if (totalMinutes === null) {
@@ -429,6 +442,18 @@ export function getHolidayLabel(holidayType: HolidayType): string {
             (holidayOption) => holidayOption.value === holidayType,
         )?.label ?? 'None'
     );
+}
+
+/** Returns the holiday premium amount: baseRate * (multiplier - 1). E.g. regular holiday PHP 500 → extra PHP 500. */
+export function getHolidayPremium(
+    baseRate: string,
+    holidayType: HolidayType,
+): number {
+    if (baseRate.trim() === '') return 0;
+    const parsedBaseRate = Number(baseRate);
+    if (!Number.isFinite(parsedBaseRate)) return 0;
+    const multiplier = getHolidayMultiplier(holidayType);
+    return parsedBaseRate * (multiplier - 1);
 }
 
 /** Formats a number as a PHP currency string (e.g. "PHP 1,234.56"). Returns "--" for invalid values. */

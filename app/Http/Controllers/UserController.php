@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

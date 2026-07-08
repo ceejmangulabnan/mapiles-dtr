@@ -49,9 +49,9 @@ return new class extends Migration
 
             // --- employees: user_id, created_by, updated_by → users.id ---
             $employeeFkMap = [
-                'user_id'     => ['users', false],
-                'created_by'  => ['users', false],
-                'updated_by'  => ['users', false],
+                'user_id' => ['users', false],
+                'created_by' => ['users', false],
+                'updated_by' => ['users', false],
             ];
 
             foreach ($employeeFkMap as $fkCol => [$refTable, $notNull]) {
@@ -69,10 +69,10 @@ return new class extends Migration
 
             // --- dtrs: employee_id → employees.id, confirmed_by / created_by / updated_by → users.id ---
             $dtrFkMap = [
-                'employee_id'   => ['employees', true],
-                'confirmed_by'  => ['users', false],
-                'created_by'    => ['users', false],
-                'updated_by'    => ['users', false],
+                'employee_id' => ['employees', true],
+                'confirmed_by' => ['users', false],
+                'created_by' => ['users', false],
+                'updated_by' => ['users', false],
             ];
 
             foreach ($dtrFkMap as $fkCol => [$refTable, $notNull]) {
@@ -143,9 +143,9 @@ return new class extends Migration
             //          (indexes on these columns are dropped automatically)
             // ========================================================================
             $oldFkColumns = [
-                'employees'  => ['user_id', 'created_by', 'updated_by'],
-                'dtrs'       => ['employee_id', 'confirmed_by', 'created_by', 'updated_by'],
-                'dtr_entries'=> ['dtr_id'],
+                'employees' => ['user_id', 'created_by', 'updated_by'],
+                'dtrs' => ['employee_id', 'confirmed_by', 'created_by', 'updated_by'],
+                'dtr_entries' => ['dtr_id'],
             ];
 
             foreach ($oldFkColumns as $table => $columns) {

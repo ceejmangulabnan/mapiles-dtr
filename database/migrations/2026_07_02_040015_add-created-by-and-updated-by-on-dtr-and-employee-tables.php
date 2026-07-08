@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add created_by (user_id) and updated_by (user_id) to employees table for auditing and tracking transactions.
-        Schema::table('employees', function(Blueprint $table) 
-        {
+        Schema::table('employees', function (Blueprint $table) {
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });
@@ -23,10 +22,9 @@ return new class extends Migration
      * Reverse the migrations.
      */
     public function down(): void
-    {   
+    {
         // Drop foreign key and columns: created_by and updated_by on employees table
-        Schema::table('employees', function(Blueprint $table) 
-        {
+        Schema::table('employees', function (Blueprint $table) {
             $table->dropForeign('created_by');
             $table->dropForeign('updated_by');
             $table->dropColumn(['created_by', 'updated_by']);

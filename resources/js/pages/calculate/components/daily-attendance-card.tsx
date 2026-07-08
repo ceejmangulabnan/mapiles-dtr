@@ -266,6 +266,9 @@ export default function DailyAttendanceCard({
                                             <th className="px-3 py-3 font-medium">
                                                 Computed rate
                                             </th>
+                                            <th className="px-3 py-3 font-medium">
+                                                Overtime
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
