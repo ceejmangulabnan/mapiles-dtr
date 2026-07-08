@@ -49,7 +49,7 @@
                 <p><strong>Employee:</strong> {{ $dtr['employeeName'] }}</p>
                 <p><strong>Period:</strong> {{ $dtr['monthLabel'] }} {{ $dtr['year'] }}</p>
                 @if ($dtr['confirmedAt'])
-                    <p><strong>Confirmed at:</strong> {{ \Carbon\Carbon::parse($dtr['confirmedAt'])->format('M j, Y, g:i A') }}</p>
+                    <p><strong>Confirmed at:</strong> {{ $dtr['confirmedAt'] }}</p>
                 @endif
             </div>
             <img src="{{ public_path('mapiles-icon.png') }}" alt="Mapiles Logo" class="logo">
