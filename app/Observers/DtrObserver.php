@@ -7,9 +7,7 @@ use App\Services\Audit\AuditLogger;
 
 class DtrObserver
 {
-    public function __construct(protected AuditLogger $logger)
-    {
-    }
+    public function __construct(protected AuditLogger $logger) {}
 
     public function created(Dtr $dtr): void
     {

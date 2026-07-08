@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'user_id',
     'created_by',
     'updated_by',
-    'status'
+    'status',
 ])]
 class Employee extends Model
 {

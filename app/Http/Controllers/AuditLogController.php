@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Services\Audit\AuditLogger;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -74,7 +75,7 @@ class AuditLogController extends Controller
                             isset($model->name) => $model->name,
                             isset($model->fullName) => $model->fullName,
                             isset($model->title) => $model->title,
-                            default => get_class($model) . ' #' . $model->getKey(),
+                            default => get_class($model).' #'.$model->getKey(),
                         };
                     }
                 } catch (\Exception) {
@@ -145,7 +146,7 @@ class AuditLogController extends Controller
         ]);
     }
 
-    public function logExport(Request $request): \Illuminate\Http\JsonResponse
+    public function logExport(Request $request): JsonResponse
     {
         $type = $request->input('type', 'csv');
         $resource = $request->input('resource', '');

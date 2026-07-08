@@ -13,9 +13,7 @@ use Laravel\Fortify\Events\PasswordUpdatedViaController;
 
 class AuditLogSubscriber
 {
-    public function __construct(protected AuditLogger $logger)
-    {
-    }
+    public function __construct(protected AuditLogger $logger) {}
 
     public function handleLogin(Login $event): void
     {
