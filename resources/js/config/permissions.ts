@@ -31,7 +31,6 @@ const PERMISSIONS: Record<Role, Permission[]> = {
     management: [
         'view-employees',
         'manage-employees',
-        'delete-employees',
         'view-calculate',
         'view-summary',
         'view-ranking',

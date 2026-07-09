@@ -51,9 +51,14 @@ class EmployeeController extends Controller
 
     public function destroy(Request $request, Employee $employee): RedirectResponse
     {
-        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+        if (! $request->user()->isAdmin()) {
             return back()->with('error', 'You do not have permission to delete employees.');
         }
+
+        $employee->dtrs->each(function ($dtr): void {
+            $dtr->entries()->delete();
+            $dtr->delete();
+        });
 
         $employee->delete();
 
