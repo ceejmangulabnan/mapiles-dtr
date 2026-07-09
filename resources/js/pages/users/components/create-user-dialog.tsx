@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,16 @@ export default function CreateUserDialog({
             onSuccess: () => {
                 onOpenChange(false);
                 form.reset();
+                toast.success('User created successfully.');
+            },
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+                toast.error(messages[0] ?? 'Failed to create user.', {
+                    description:
+                        messages.length > 1
+                            ? `${messages.length - 1} more error(s)`
+                            : undefined,
+                });
             },
         });
     };

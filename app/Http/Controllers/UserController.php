@@ -28,6 +28,7 @@ class UserController extends Controller
         return Inertia::render('users/index', [
             'users' => $users,
             'successMessage' => session('success'),
+            'errorMessage' => session('error'),
         ]);
     }
 

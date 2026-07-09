@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { Can } from '@/components/can';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,7 @@ const statusColor = (status: string) => {
 export default function UsersPageContent({
     users,
     successMessage = null,
+    errorMessage = null,
 }: UsersPageProps) {
     const auth = useAuth();
     const isAdmin = auth.user.role === 'admin';
@@ -55,12 +57,24 @@ export default function UsersPageContent({
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const handleStatusChange = (user: UserRow, newStatus: string) => {
-        router.patch(updateStatus({ user: user.id }).url, { status: newStatus });
+        router.patch(updateStatus({ user: user.id }).url, { status: newStatus }, {
+            onSuccess: () => toast.success('User status updated.'),
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+                toast.error(messages[0] ?? 'Failed to update user status.');
+            },
+        });
     };
 
     const handleDelete = (user: UserRow) => {
         if (confirm('Are you sure you want to delete this user?')) {
-            router.delete(destroy({ user: user.id }).url);
+            router.delete(destroy({ user: user.id }).url, {
+                onSuccess: () => toast.success('User deleted.'),
+                onError: (errors) => {
+                    const messages = Object.values(errors).filter(Boolean);
+                    toast.error(messages[0] ?? 'Failed to delete user.');
+                },
+            });
         }
     };
 
@@ -88,6 +102,12 @@ export default function UsersPageContent({
                 {successMessage && (
                     <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-100">
                         {successMessage}
+                    </div>
+                )}
+
+                {errorMessage && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
+                        {errorMessage}
                     </div>
                 )}
 
