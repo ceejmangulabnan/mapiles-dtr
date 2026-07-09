@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -49,10 +51,11 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Configure Fortify views.
      */
-    private function inertiaResponse(string $component, array $data = []): \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
+    private function inertiaResponse(string $component, array $data = []): JsonResponse|Response
     {
-        /** @var \Illuminate\Http\JsonResponse|\Illuminate\Http\Response $response */
+        /** @var JsonResponse|Response $response */
         $response = Inertia::render($component, $data)->toResponse(request());
+
         return $response->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');

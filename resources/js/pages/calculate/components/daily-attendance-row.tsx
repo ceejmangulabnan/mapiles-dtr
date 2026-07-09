@@ -72,7 +72,7 @@ export default function DailyAttendanceRow({
                 <div className="space-y-1">
                     <Label htmlFor={`absent-${day.key}`}>Mark as absent</Label>
                     <p className="text-sm text-muted-foreground">
-                        Absent days automatically use 0 hours and PHP 0.00.
+                        Absent days on a regular holiday still receive the base daily rate.
                     </p>
                 </div>
             </div>
@@ -109,8 +109,7 @@ export default function DailyAttendanceRow({
                         Holiday type
                     </Label>
                     <Select
-                        value={entry.isAbsent ? 'none' : entry.holidayType}
-                        disabled={entry.isAbsent}
+                        value={entry.holidayType}
                         onValueChange={(value) =>
                             onUpdate('holidayType', value as HolidayType)
                         }
@@ -140,7 +139,7 @@ export default function DailyAttendanceRow({
                         <Input
                             id={`rate-${day.key}`}
                             type="text"
-                            value={entry.isAbsent ? '0.00' : entry.rate}
+                            value={entry.rate}
                             readOnly
                             className="bg-muted/40 font-medium"
                         />
