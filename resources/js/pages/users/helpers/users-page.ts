@@ -11,8 +11,6 @@ export type UserRow = {
 
 export type UsersPageProps = {
     users: UserRow[];
-    successMessage?: string | null;
-    errorMessage?: string | null;
 };
 
 export const breadcrumbs: BreadcrumbItem[] = [

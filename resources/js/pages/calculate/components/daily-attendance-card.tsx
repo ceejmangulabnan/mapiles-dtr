@@ -80,7 +80,7 @@ export default function DailyAttendanceCard({
     updateAttendanceEntry,
 }: DailyAttendanceCardProps) {
     return (
-        <Card className="w-full max-w-6xl">
+        <Card className="w-full max-w-7xl">
             <CardHeader>
                 <CardTitle>Daily attendance input</CardTitle>
                 <CardDescription>
@@ -241,7 +241,7 @@ export default function DailyAttendanceCard({
                         </div>
 
                         <div className="hidden lg:block">
-                            <div className="overflow-x-auto rounded-lg border">
+                            <div className="rounded-lg border">
                                 <table className="min-w-full text-sm">
                                     <thead className="bg-muted/30 text-left text-muted-foreground">
                                         <tr>

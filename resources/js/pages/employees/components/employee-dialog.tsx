@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Dialog,
     DialogClose,
@@ -322,6 +323,7 @@ export default function EmployeeDialog({ dialog }: EmployeeDialogProps) {
                             </Button>
                         </DialogClose>
                         <Button type="submit" disabled={form.processing}>
+                            {form.processing && <Spinner />}
                             {isEditingEmployee
                                 ? 'Save changes'
                                 : 'Add employee'}

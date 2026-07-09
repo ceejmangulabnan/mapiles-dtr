@@ -6,6 +6,7 @@ import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -124,6 +125,7 @@ export default function Profile({
                                         disabled={processing}
                                         data-test="update-profile-button"
                                     >
+                                        {processing && <Spinner />}
                                         Save
                                     </Button>
 

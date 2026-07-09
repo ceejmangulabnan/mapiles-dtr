@@ -2,6 +2,7 @@ import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -10,6 +11,7 @@ import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -147,6 +149,7 @@ export default function Security({
                                         disabled={processing}
                                         data-test="update-password-button"
                                     >
+                                        {processing && <Spinner />}
                                         Save password
                                     </Button>
 
@@ -191,6 +194,7 @@ export default function Security({
                                                 type="submit"
                                                 disabled={processing}
                                             >
+                                                {processing && <Spinner />}
                                                 Disable 2FA
                                             </Button>
                                         )}
@@ -225,15 +229,17 @@ export default function Security({
                                     ) : (
                                         <Form
                                             {...enable.form()}
-                                            onSuccess={() =>
-                                                setShowSetupModal(true)
-                                            }
+                                            onSuccess={() => {
+                                                setShowSetupModal(true);
+                                                toast.success('Two-factor authentication enabled.');
+                                            }}
                                         >
                                             {({ processing }) => (
                                                 <Button
                                                     type="submit"
                                                     disabled={processing}
                                                 >
+                                                    {processing && <Spinner />}
                                                     Enable 2FA
                                                 </Button>
                                             )}

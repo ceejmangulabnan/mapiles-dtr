@@ -36,7 +36,6 @@ export type SummaryDtr = {
 };
 
 export type SummaryPageProps = {
-    successMessage?: string | null;
     dtrs: SummaryDtr[];
 };
 

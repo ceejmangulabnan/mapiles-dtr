@@ -1,4 +1,5 @@
 ﻿import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import Papa from 'papaparse';
 import { useState } from 'react';
 import { index as calculateIndex } from '@/routes/calculate';
@@ -131,6 +132,13 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
             onSuccess: () => {
                 if (selectedDtr?.id === dtr.id) {
                     handleDetailsDialogChange(false);
+                }
+                toast.success('DTR deleted successfully.');
+            },
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+                if (messages.length > 0) {
+                    toast.error(messages[0]);
                 }
             },
             onFinish: () => {

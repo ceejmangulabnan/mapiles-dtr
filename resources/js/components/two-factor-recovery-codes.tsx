@@ -1,8 +1,10 @@
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Card,
     CardContent,
@@ -83,7 +85,10 @@ export default function TwoFactorRecoveryCodes({
                         <Form
                             {...regenerateRecoveryCodes.form()}
                             options={{ preserveScroll: true }}
-                            onSuccess={fetchRecoveryCodes}
+                            onSuccess={() => {
+                                fetchRecoveryCodes();
+                                toast.success('Recovery codes regenerated.');
+                            }}
                         >
                             {({ processing }) => (
                                 <Button
@@ -92,7 +97,8 @@ export default function TwoFactorRecoveryCodes({
                                     disabled={processing}
                                     aria-describedby="regenerate-warning"
                                 >
-                                    <RefreshCw /> Regenerate codes
+                                    {processing ? <Spinner /> : <RefreshCw />}
+                                    Regenerate codes
                                 </Button>
                             )}
                         </Form>

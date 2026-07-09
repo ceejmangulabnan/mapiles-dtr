@@ -105,7 +105,6 @@ class CalculateController extends Controller
             ->all();
 
         return Inertia::render('calculate/index', [
-            'successMessage' => session('success'),
             'initialSelection' => [
                 'employeeId' => $selectedEmployeeId,
                 'month' => $selectedMonth,

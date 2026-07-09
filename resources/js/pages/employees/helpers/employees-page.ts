@@ -23,8 +23,6 @@ export type EmployeeRow = {
 };
 
 export type EmployeesPageProps = {
-    successMessage?: string | null;
-    errorMessage?: string | null;
     employees: EmployeeRow[];
     summary: {
         totalEmployees: number;

@@ -1,15 +1,19 @@
 import { useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/spinner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
+    DialogClose,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PasswordInput from '@/components/password-input';
 import {
     Select,
     SelectContent,
@@ -66,151 +70,146 @@ export default function CreateUserDialog({
                     <DialogTitle>Add User</DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="name" className="w-32 shrink-0 text-right">
-                            Name
-                        </Label>
-                        <div className="flex-1">
-                            <Input
-                                id="name"
-                                value={form.data.name}
-                                onChange={(e) =>
-                                    form.setData('name', e.target.value)
-                                }
-                            />
-                            <InputError message={form.errors.name} />
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-5">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    value={form.data.name}
+                                    onChange={(e) =>
+                                        form.setData('name', e.target.value)
+                                    }
+                                />
+                                <InputError message={form.errors.name} />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="user@example.com"
+                                    value={form.data.email}
+                                    onChange={(e) =>
+                                        form.setData('email', e.target.value)
+                                    }
+                                />
+                                <InputError message={form.errors.email} />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="password">Password</Label>
+                                <PasswordInput
+                                    id="password"
+                                    value={form.data.password}
+                                    onChange={(e) =>
+                                        form.setData('password', e.target.value)
+                                    }
+                                />
+                                <InputError message={form.errors.password} />
+                                <p className="text-xs text-muted-foreground">
+                                    Minimum 8 characters with uppercase, lowercase, number, and symbol.
+                                </p>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="password_confirmation">Confirm Password</Label>
+                                <PasswordInput
+                                    id="password_confirmation"
+                                    value={form.data.password_confirmation}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'password_confirmation',
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError message={form.errors.password_confirmation} />
+                                {form.data.password ? (
+                                    <div className="invisible text-xs leading-normal">
+                                        Minimum 8 characters with uppercase, lowercase, number, and symbol.
+                                    </div>
+                                ) : (
+                                    <div className="h-0" />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="role">Role</Label>
+                                <Select
+                                    value={form.data.role}
+                                    onValueChange={(value) =>
+                                        form.setData('role', value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="management">
+                                            Management
+                                        </SelectItem>
+                                        <SelectItem value="employee">
+                                            Employee
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.role} />
+                                <div className="h-0" />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="status">Status</Label>
+                                <Select
+                                    value={form.data.status}
+                                    onValueChange={(value) =>
+                                        form.setData('status', value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="probation">
+                                            Probation
+                                        </SelectItem>
+                                        <SelectItem value="resigned">
+                                            Resigned
+                                        </SelectItem>
+                                        <SelectItem value="terminated">
+                                            Terminated
+                                        </SelectItem>
+                                        <SelectItem value="suspended">
+                                            Suspended
+                                        </SelectItem>
+                                        <SelectItem value="retired">Retired</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.status} />
+                                <div className="h-0" />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="email" className="w-32 shrink-0 text-right">
-                            Email
-                        </Label>
-                        <div className="flex-1">
-                            <Input
-                                id="email"
-                                type="email"
-                                value={form.data.email}
-                                onChange={(e) =>
-                                    form.setData('email', e.target.value)
-                                }
-                            />
-                            <InputError message={form.errors.email} />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="password" className="w-32 shrink-0 text-right">
-                            Password
-                        </Label>
-                        <div className="flex-1">
-                            <Input
-                                id="password"
-                                type="password"
-                                value={form.data.password}
-                                onChange={(e) =>
-                                    form.setData('password', e.target.value)
-                                }
-                            />
-                            <InputError message={form.errors.password} />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="password_confirmation" className="w-32 shrink-0 text-right">
-                            Confirm Password
-                        </Label>
-                        <div className="flex-1">
-                            <Input
-                                id="password_confirmation"
-                                type="password"
-                                value={form.data.password_confirmation}
-                                onChange={(e) =>
-                                    form.setData(
-                                        'password_confirmation',
-                                        e.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="role" className="w-32 shrink-0 text-right">
-                            Role
-                        </Label>
-                        <div className="flex-1">
-                            <Select
-                                value={form.data.role}
-                                onValueChange={(value) =>
-                                    form.setData('role', value)
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="management">
-                                        Management
-                                    </SelectItem>
-                                    <SelectItem value="employee">
-                                        Employee
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={form.errors.role} />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="status" className="w-32 shrink-0 text-right">
-                            Status
-                        </Label>
-                        <div className="flex-1">
-                            <Select
-                                value={form.data.status}
-                                onValueChange={(value) =>
-                                    form.setData('status', value)
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="probation">
-                                        Probation
-                                    </SelectItem>
-                                    <SelectItem value="resigned">
-                                        Resigned
-                                    </SelectItem>
-                                    <SelectItem value="terminated">
-                                        Terminated
-                                    </SelectItem>
-                                    <SelectItem value="suspended">
-                                        Suspended
-                                    </SelectItem>
-                                    <SelectItem value="retired">Retired</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={form.errors.status} />
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                        >
-                            Cancel
-                        </Button>
+                    <DialogFooter className="mt-6 gap-2 border-t pt-4">
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                Cancel
+                            </Button>
+                        </DialogClose>
                         <Button type="submit" disabled={form.processing}>
+                            {form.processing && <Spinner />}
                             Create User
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>

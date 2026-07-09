@@ -46,8 +46,6 @@ const statusColor = (status: string) => {
 
 export default function UsersPageContent({
     users,
-    successMessage = null,
-    errorMessage = null,
 }: UsersPageProps) {
     const auth = useAuth();
     const isAdmin = auth.user.role === 'admin';
@@ -99,19 +97,8 @@ export default function UsersPageContent({
                     )}
                 </div>
 
-                {successMessage && (
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-100">
-                        {successMessage}
-                    </div>
-                )}
 
-                {errorMessage && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
-                        {errorMessage}
-                    </div>
-                )}
-
-                <Card>
+<Card>
                     <CardHeader>
                         <CardTitle>User Accounts</CardTitle>
                     </CardHeader>

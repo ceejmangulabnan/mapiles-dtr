@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Features;
@@ -113,9 +112,7 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(5)->by($request->ip());
         });
     }
 }
