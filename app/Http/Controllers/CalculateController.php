@@ -157,12 +157,15 @@ class CalculateController extends Controller
                         $entry['is_absent'] ?? false,
                         FILTER_VALIDATE_BOOLEAN,
                     );
+                    $isAbsentOnRegularHoliday = $isAbsent && (string) $entry['holiday_type'] === 'regularHoliday';
                     $workDate = Carbon::parse($entry['date']);
                     $scheduleDay = $scheduleByDay->get((int) $workDate->dayOfWeek);
-                    $baseRate = $isAbsent
+                    $baseRate = $isAbsent && ! $isAbsentOnRegularHoliday
                         ? $this->formatRate(0)
                         : $this->resolvedEntryBaseRate($employee, $entry['base_rate'] ?? null);
-                    $holidayType = $isAbsent ? 'none' : (string) $entry['holiday_type'];
+                    $holidayType = $isAbsent && ! $isAbsentOnRegularHoliday
+                        ? 'none'
+                        : (string) $entry['holiday_type'];
                     $workedMinutes = $isAbsent
                         ? 0
                         : $this->resolveWorkedMinutes(
@@ -186,18 +189,20 @@ class CalculateController extends Controller
                             : $this->normalizeEntryTime($entry['time_out'] ?? null),
                         'holiday_type' => $holidayType,
                         'worked_minutes' => $workedMinutes,
-                        'base_rate' => $isAbsent
+                        'base_rate' => $isAbsent && ! $isAbsentOnRegularHoliday
                             ? $this->formatRate(0)
                             : $baseRate,
-                        'rate' => $isAbsent
-                            ? $this->formatRate(0)
-                            : $this->computedEntryRate(
-                                $baseRate,
-                                $holidayType,
-                                $entry['time_in'] ?? null,
-                                $scheduleDay['startTime'] ?? null,
-                                (int) ($scheduleDay['graceMinutes'] ?? 0),
-                            ),
+                        'rate' => $isAbsentOnRegularHoliday
+                            ? $baseRate
+                            : ($isAbsent
+                                ? $this->formatRate(0)
+                                : $this->computedEntryRate(
+                                    $baseRate,
+                                    $holidayType,
+                                    $entry['time_in'] ?? null,
+                                    $scheduleDay['startTime'] ?? null,
+                                    (int) ($scheduleDay['graceMinutes'] ?? 0),
+                                )),
                         'overtime_minutes' => $isAbsent
                             ? 0
                             : max(0, $workedMinutes - $scheduledWorkedMinutes),

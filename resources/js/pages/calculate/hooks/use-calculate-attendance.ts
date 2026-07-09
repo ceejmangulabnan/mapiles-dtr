@@ -284,11 +284,17 @@ export function useCalculateAttendance(
             return entry;
         }
 
-        if (entry.isAbsent) {
+        if (entry.isAbsent && entry.holidayType !== 'regularHoliday') {
             return {
                 ...entry,
                 baseRate: absentRate,
                 rate: absentRate,
+            };
+        }
+
+        if (entry.isAbsent) {
+            return {
+                ...entry,
             };
         }
 
@@ -346,11 +352,17 @@ export function useCalculateAttendance(
         const entry = getAttendanceEntry(day.key);
         const effectiveTimeIn = entry.isAbsent ? '' : entry.timeIn;
         const effectiveTimeOut = entry.isAbsent ? '' : entry.timeOut;
-        const effectiveHolidayType = entry.isAbsent
-            ? 'none'
-            : entry.holidayType;
-        const effectiveBaseRate = entry.isAbsent ? absentRate : entry.baseRate;
-        const effectiveRate = entry.isAbsent ? absentRate : entry.rate;
+        const isAbsentOnRegularHoliday =
+            entry.isAbsent && entry.holidayType === 'regularHoliday';
+        const effectiveHolidayType = isAbsentOnRegularHoliday
+            ? 'regularHoliday'
+            : (entry.isAbsent ? 'none' : entry.holidayType);
+        const effectiveBaseRate = isAbsentOnRegularHoliday
+            ? entry.baseRate
+            : (entry.isAbsent ? absentRate : entry.baseRate);
+        const effectiveRate = isAbsentOnRegularHoliday
+            ? entry.rate
+            : (entry.isAbsent ? absentRate : entry.rate);
         const workedMinutes = entry.isAbsent
             ? 0
             : (getWorkedMinutes(effectiveTimeIn, effectiveTimeOut) ?? 0);
@@ -362,9 +374,11 @@ export function useCalculateAttendance(
             weekday: day.weekday,
             timeIn: effectiveTimeIn,
             timeOut: effectiveTimeOut,
-            holidayLabel: entry.isAbsent
-                ? 'Absent'
-                : getHolidayLabel(effectiveHolidayType),
+            holidayLabel: isAbsentOnRegularHoliday
+                ? getHolidayLabel('regularHoliday')
+                : (entry.isAbsent
+                    ? 'Absent'
+                    : getHolidayLabel(effectiveHolidayType)),
             holidayType: effectiveHolidayType,
             workedDuration: formatWorkedDuration(workedMinutes),
             workedMinutes,
@@ -396,7 +410,9 @@ export function useCalculateAttendance(
     );
     const totalHolidayPremium = summaryEntryData.reduce(
         (total, entry) =>
-            total + getHolidayPremium(entry.baseRate, entry.holidayType),
+            total + (entry.isAbsent && entry.holidayType === 'regularHoliday'
+                ? 0
+                : getHolidayPremium(entry.baseRate, entry.holidayType)),
         0,
     );
     const totalOvertimeMinutes = summaryEntryData.reduce(
@@ -475,6 +491,34 @@ export function useCalculateAttendance(
         const gracePeriodLabel = formatGracePeriod(day.graceMinutes);
 
         if (entry.isAbsent) {
+            if (entry.holidayType === 'regularHoliday') {
+                return {
+                    key: day.key,
+                    label: day.label,
+                    weekday: day.weekday,
+                    timeIn: '--',
+                    timeOut: '--',
+                    scheduledTimeInLabel,
+                    gracePeriodLabel,
+                    attendanceStatusLabel: 'Absent (Regular Holiday)',
+                    lateMinutesLabel: 'N/A',
+                    lateDeductionLabel: 'N/A',
+                    shiftDurationLabel: '--',
+                    breakDurationLabel: '--',
+                    workedDurationLabel: formatWorkedDuration(0),
+                    timeFormulaLabel:
+                        'Marked as absent. Hours worked are automatically set to 0h.',
+                    holidayLabel: 'Regular Holiday',
+                    holidayAdjustmentLabel:
+                        'Absent on a regular holiday — employee receives their base daily rate without premium.',
+                    multiplierLabel: '1.00x',
+                    baseRateLabel: formatRateAmount(entry.baseRate),
+                    rateLabel: formatRateAmount(entry.rate),
+                    rateFormulaLabel: `${formatRateAmount(entry.baseRate)} × 1.00 = ${formatRateAmount(entry.rate)} (base rate, no premium).`,
+                    isAbsent: true,
+                };
+            }
+
             return {
                 key: day.key,
                 label: day.label,

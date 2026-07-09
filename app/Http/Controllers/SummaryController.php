@@ -58,7 +58,9 @@ class SummaryController extends Controller
                     'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                     'holidayPremium' => (string) ($dtr->entries->sum(
-                        fn ($entry): float => (float) ($entry->base_rate ?? 0) * max(0, $this->holidayMultiplier((string) $entry->holiday_type) - 1),
+                        fn ($entry): float => (float) ($entry->rate ?? 0) > (float) ($entry->base_rate ?? 0)
+                            ? (float) ($entry->base_rate ?? 0) * max(0, $this->holidayMultiplier((string) $entry->holiday_type) - 1)
+                            : 0,
                     )),
                     'confirmedAt' => ($dtr->updated_at ?? $dtr->created_at)?->toIso8601String(),
                     'entries' => $dtr->entries->map(function ($entry): array {
@@ -173,7 +175,7 @@ class SummaryController extends Controller
         $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
 
         $zip = new ZipArchive;
-        $zipPath = tempnam(sys_get_temp_dir(), 'dtr-batch-') . '.zip';
+        $zipPath = tempnam(sys_get_temp_dir(), 'dtr-batch-').'.zip';
 
         if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
             return new HttpResponse('Could not create ZIP archive.', 500);
@@ -235,7 +237,7 @@ class SummaryController extends Controller
 
         $zip->close();
 
-        $zipFilename = 'dtr-batch-export-' . now()->format('Y-m-d-His') . '.zip';
+        $zipFilename = 'dtr-batch-export-'.now()->format('Y-m-d-His').'.zip';
 
         $this->auditLogger->logWithoutModel('export-dtr-pdf-batch', [
             'count' => $dtrs->count(),
@@ -244,7 +246,7 @@ class SummaryController extends Controller
 
         return new HttpResponse(file_get_contents($zipPath), 200, [
             'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="' . $zipFilename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$zipFilename.'"',
             'Content-Length' => filesize($zipPath),
         ]);
     }

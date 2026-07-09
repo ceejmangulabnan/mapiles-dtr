@@ -76,8 +76,7 @@ export default function DailyAttendanceTableRow({
             </td>
             <td className="px-3 py-3 align-middle">
                 <Select
-                    value={entry.isAbsent ? 'none' : entry.holidayType}
-                    disabled={entry.isAbsent}
+                    value={entry.holidayType}
                     onValueChange={(value) =>
                         onUpdate('holidayType', value as HolidayType)
                     }
@@ -125,7 +124,7 @@ export default function DailyAttendanceTableRow({
                     <Input
                         id={`desktop-rate-${day.key}`}
                         type="text"
-                        value={entry.isAbsent ? '0.00' : entry.rate}
+                        value={entry.rate}
                         readOnly
                         className="min-w-[120px] bg-muted/40 text-right font-medium"
                     />
