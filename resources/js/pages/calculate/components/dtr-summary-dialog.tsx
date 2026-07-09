@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Dialog,
     DialogContent,
@@ -567,7 +568,7 @@ export default function DtrSummaryDialog({
                         onClick={onConfirm}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? 'Saving...' : 'Confirm DTR'}
+                        {isSubmitting ? <><Spinner /> Saving...</> : 'Confirm DTR'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

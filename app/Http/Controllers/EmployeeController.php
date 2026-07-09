@@ -131,8 +131,6 @@ class EmployeeController extends Controller
         });
 
         return [
-            'successMessage' => session('success'),
-            'errorMessage' => session('error'),
             'employees' => $employees,
             'summary' => [
                 'totalEmployees' => $employeeRecords->count(),

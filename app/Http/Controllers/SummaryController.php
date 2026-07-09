@@ -30,7 +30,6 @@ class SummaryController extends Controller
             ->get();
 
         return Inertia::render('summary/index', [
-            'successMessage' => session('success'),
             'dtrs' => $dtrRecords->map(function (Dtr $dtr): array {
                 $periodDate = $this->resolvedPeriodDate($dtr);
 

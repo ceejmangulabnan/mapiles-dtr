@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Can } from '@/components/can';
 import { Badge } from '@/components/ui/badge';
@@ -48,15 +49,22 @@ const statusColor = (status: string) => {
 };
 
 export default function EmployeesPageContent({
-    successMessage = null,
-    errorMessage = null,
     employees,
     summary,
 }: EmployeesPageProps) {
     const dialog = useEmployeeDialog();
 
     const handleStatusChange = (employee: EmployeeRow, newStatus: string) => {
-        router.patch(updateStatus({ employee: employee.id }).url, { status: newStatus });
+        router.patch(updateStatus({ employee: employee.id }).url, {
+            status: newStatus,
+            onSuccess: () => toast.success('Employee status updated.'),
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+                if (messages.length > 0) {
+                    toast.error(messages[0]);
+                }
+            },
+        });
     };
 
     return (
@@ -81,18 +89,6 @@ export default function EmployeesPageContent({
                 </div>
 
                 <EmployeeDialog dialog={dialog} />
-
-                {successMessage && (
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-100">
-                        {successMessage}
-                    </div>
-                )}
-
-                {errorMessage && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100">
-                        {errorMessage}
-                    </div>
-                )}
 
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card>
@@ -144,10 +140,10 @@ export default function EmployeesPageContent({
                                     <tbody className="divide-y divide-border">
                                         {employees.map((employee) => (
                                             <tr key={employee.id}>
-                                                <td className="py-4 pr-4 align-top font-medium">
+                                                <td className="py-4 pr-4 align-middle font-medium">
                                                     {employee.fullName}
                                                 </td>
-                                                <td className="px-4 py-4 align-top text-muted-foreground">
+                                                <td className="px-4 py-4 align-middle text-muted-foreground">
                                                     <div className="space-y-1">
                                                         {employee.schedule.groups.map(
                                                             (group, index) => (
@@ -170,7 +166,7 @@ export default function EmployeesPageContent({
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 align-top">
+                                                <td className="px-4 py-4 align-middle">
                                                     <Badge
                                                         className={`capitalize ${statusColor(employee.status)}`}
                                                     >
@@ -178,7 +174,7 @@ export default function EmployeesPageContent({
                                                     </Badge>
                                                 </td>
                                                 <Can permission="manage-employees">
-                                                    <td className="px-4 py-4 align-top">
+                                                    <td className="px-4 py-4 align-middle">
                                                         <div className="flex flex-wrap gap-2">
                                                             <Select
                                                                 value={

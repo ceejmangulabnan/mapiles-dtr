@@ -84,7 +84,6 @@ export type ActiveDtr = {
 };
 
 export type CalculatePageProps = {
-    successMessage?: string | null;
     employees: EmployeeOption[];
     initialSelection?: InitialSelection | null;
     isEditingFromSummary?: boolean;

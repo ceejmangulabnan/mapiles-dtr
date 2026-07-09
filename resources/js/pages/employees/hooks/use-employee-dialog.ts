@@ -117,6 +117,11 @@ export function useEmployeeDialog() {
         const onSuccess = () => {
             setIsEmployeeDialogOpen(false);
             resetEmployeeForm();
+            toast.success(
+                editingEmployee
+                    ? 'Employee updated successfully.'
+                    : 'Employee added successfully.',
+            );
         };
 
         const onError = (errors: Record<string, string>) => {
@@ -158,6 +163,13 @@ export function useEmployeeDialog() {
         router.delete(employeePath(employee.id), {
             preserveScroll: true,
             preserveState: false,
+            onSuccess: () => toast.success('Employee deleted successfully.'),
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+                if (messages.length > 0) {
+                    toast.error(messages[0]);
+                }
+            },
         });
     };
 

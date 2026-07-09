@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { store as calculateStore } from '@/routes/calculate';
 import { index as summaryIndex } from '@/routes/summary';
@@ -793,7 +794,20 @@ export function useCalculateAttendance(
                 preserveScroll: true,
                 preserveState: false,
                 onStart: () => setIsSubmittingDtr(true),
-                onSuccess: () => setIsSummaryDialogOpen(false),
+                onSuccess: () => {
+                    setIsSummaryDialogOpen(false);
+                    toast.success('DTR confirmed successfully.');
+                },
+                onError: (errors) => {
+                    const messages = Object.values(errors).filter(Boolean);
+                    if (messages.length > 0) {
+                        toast.error(messages[0], {
+                            description: messages.length > 1
+                                ? `${messages.length - 1} more error(s)`
+                                : undefined,
+                        });
+                    }
+                },
                 onFinish: () => setIsSubmittingDtr(false),
             },
         );
