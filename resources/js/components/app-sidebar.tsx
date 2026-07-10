@@ -12,13 +12,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
+import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as calculateIndex } from '@/routes/calculate';
 import { index as employeesIndex } from '@/routes/employees';
 import { index as rankingIndex } from '@/routes/ranking';
 import { index as summaryIndex } from '@/routes/summary';
-import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as usersIndex } from '@/routes/users';
-import { useAuth } from '@/hooks/use-auth';
 import type { NavItem } from '@/types';
 
 const ALL_NAV_ITEMS: (NavItem & { permission?: string })[] = [
@@ -31,6 +31,7 @@ const ALL_NAV_ITEMS: (NavItem & { permission?: string })[] = [
 ];
 
 const permissionMap: Record<string, string> = {};
+
 for (const item of ALL_NAV_ITEMS) {
     if (item.permission) {
         permissionMap[item.title] = item.permission;
@@ -42,6 +43,7 @@ export function AppSidebar() {
 
     const mainNavItems = ALL_NAV_ITEMS.filter((item) => {
         const perm = permissionMap[item.title];
+
         return !perm || can(perm as any);
     });
 

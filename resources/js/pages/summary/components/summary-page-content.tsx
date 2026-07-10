@@ -1,8 +1,8 @@
 ﻿import { Head } from '@inertiajs/react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
+import { Can } from '@/components/can';
 import Heading from '@/components/heading';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -10,15 +10,14 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Can } from '@/components/can';
 import AppLayout from '@/layouts/app-layout';
-import RowActionsDropdown from './row-actions-dropdown';
 import {
     formatRateAmount,
     formatWorkedDuration,
@@ -30,6 +29,7 @@ import {
 import type {SummaryPageProps} from '../helpers/summary-page';
 import { useDtrHistory } from '../hooks/use-dtr-history';
 import DtrDetailsDialog from './dtr-details-dialog';
+import RowActionsDropdown from './row-actions-dropdown';
 
 export default function SummaryPageContent({
     dtrs,
@@ -93,6 +93,16 @@ export default function SummaryPageContent({
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
+                                            </Can>
+                                            <Can permission="delete-dtr">
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={history.handleBatchDelete}
+                                                >
+                                                    Delete Selected
+                                                </Button>
                                             </Can>
                                             <Button type="button" variant="ghost" size="sm" onClick={() => history.clearSelection()}>
                                                 Clear

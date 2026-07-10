@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
-import { toast } from 'sonner';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { store as calculateStore } from '@/routes/calculate';
 import { index as summaryIndex } from '@/routes/summary';
 import {
@@ -800,6 +800,7 @@ export function useCalculateAttendance(
                 },
                 onError: (errors) => {
                     const messages = Object.values(errors).filter(Boolean);
+
                     if (messages.length > 0) {
                         toast.error(messages[0], {
                             description: messages.length > 1

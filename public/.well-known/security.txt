@@ -1,0 +1,23 @@
+# Security Policy
+# https://www.rfc-editor.org/rfc/rfc9116
+
+# Contact information for security researchers to report vulnerabilities
+Contact: mailto:marvinpcabrera@gmail.com
+
+# Preferred languages for security reports
+Preferred-Languages: en, fil
+
+# Canonical URL where this file is hosted
+Canonical: https://dtr-mapiles.onrender.com/.well-known/security.txt
+
+# Link to the full security disclosure policy
+Policy: https://dtr-mapiles.onrender.com/security-policy
+
+# Encryption key for secure communication
+# Encryption: https://dtr-mapiles.onrender.com/pgp-key.txt
+
+# Date after which this file is considered stale
+Expires: 2027-01-01T00:00:00.000Z
+
+# Acknowledgement period
+Acknowledgments: https://dtr-mapiles.onrender.com/security-acknowledgments

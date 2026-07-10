@@ -389,11 +389,19 @@ export function getOvertimeAmount(
     overtimeMinutes: number,
     dailyRate: string,
 ): number {
-    if (overtimeMinutes <= 0) return 0;
+    if (overtimeMinutes <= 0) {
+return 0;
+}
+
     const parsedDailyRate = Number(dailyRate);
-    if (!Number.isFinite(parsedDailyRate) || parsedDailyRate <= 0) return 0;
+
+    if (!Number.isFinite(parsedDailyRate) || parsedDailyRate <= 0) {
+return 0;
+}
+
     const hourlyRate = parsedDailyRate / workHoursPerDay;
     const baseAmount = (overtimeMinutes / 60) * hourlyRate;
+
     return baseAmount * (1 + overtimePremiumRate);
 }
 
@@ -448,10 +456,18 @@ export function getHolidayPremium(
     baseRate: string,
     holidayType: HolidayType,
 ): number {
-    if (baseRate.trim() === '') return 0;
+    if (baseRate.trim() === '') {
+return 0;
+}
+
     const parsedBaseRate = Number(baseRate);
-    if (!Number.isFinite(parsedBaseRate)) return 0;
+
+    if (!Number.isFinite(parsedBaseRate)) {
+return 0;
+}
+
     const multiplier = getHolidayMultiplier(holidayType);
+
     return parsedBaseRate * (multiplier - 1);
 }
 
@@ -574,7 +590,9 @@ export function isHalfDayTimeIn(
 export function isHalfDayEarlyOut(timeIn: string, timeOut: string): boolean {
     const workedMinutes = getWorkedMinutes(timeIn, timeOut);
 
-    if (workedMinutes === null) return false;
+    if (workedMinutes === null) {
+return false;
+}
 
     return workedMinutes <= halfDayEarlyOutThresholdMinutes;
 }

@@ -61,7 +61,7 @@ export default function DailyAttendanceTableRow({
                     value={entry.isAbsent ? '' : entry.timeIn}
                     disabled={entry.isAbsent}
                     onChange={(event) => onUpdate('timeIn', event.target.value)}
-                    className="min-w-[128px]"
+                    className="w-full"
                 />
             </td>
             <td className="px-3 py-3 align-middle">
@@ -71,7 +71,7 @@ export default function DailyAttendanceTableRow({
                     value={entry.isAbsent ? '' : entry.timeOut}
                     disabled={entry.isAbsent}
                     onChange={(event) => onUpdate('timeOut', event.target.value)}
-                    className="min-w-[128px]"
+                    className="w-full"
                 />
             </td>
             <td className="px-3 py-3 align-middle">
@@ -83,7 +83,7 @@ export default function DailyAttendanceTableRow({
                 >
                     <SelectTrigger
                         id={`desktop-holiday-type-${day.key}`}
-                        className="min-w-[150px]"
+                        className="w-full"
                     >
                         <SelectValue />
                     </SelectTrigger>
@@ -115,18 +115,18 @@ export default function DailyAttendanceTableRow({
                 </label>
             </td>
             <td className="px-3 py-3 align-middle">
-                <div className="inline-flex h-10 min-w-[80px] items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
+                <div className="inline-flex h-10 w-full items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
                     {workedDuration}
                 </div>
             </td>
             <td className="px-3 py-3 align-middle">
-                <div className="flex min-w-[200px] items-center gap-2">
+                <div className="flex w-full items-center gap-2">
                     <Input
                         id={`desktop-rate-${day.key}`}
                         type="text"
                         value={entry.rate}
                         readOnly
-                        className="min-w-[120px] bg-muted/40 text-right font-medium"
+                        className="w-full bg-muted/40 text-right font-medium"
                     />
                     <Button
                         type="button"
@@ -140,7 +140,7 @@ export default function DailyAttendanceTableRow({
                 </div>
             </td>
             <td className="px-3 py-3 align-middle">
-                <div className="inline-flex h-10 min-w-[100px] items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
+                <div className="inline-flex h-10 w-full items-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-foreground">
                     {overtimeMinutes > 0
                         ? overtimeAmount.toFixed(2)
                         : '--'}

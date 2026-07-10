@@ -1,7 +1,7 @@
 ﻿import { router } from '@inertiajs/react';
-import { toast } from 'sonner';
 import Papa from 'papaparse';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { index as calculateIndex } from '@/routes/calculate';
 import {
     buildOvertimeSummary,
@@ -10,10 +10,10 @@ import {
     getHolidayLabel,
 } from '../../calculate/helpers/calculate-page';
 import {
+    dtrBatchDeletePath,
     dtrExportPath,
     dtrPath,
-    formatConfirmedAt
-    
+    formatConfirmedAt,
 } from '../helpers/summary-page';
 import type {SummaryDtr} from '../helpers/summary-page';
 
@@ -58,7 +58,13 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     const toggleSelect = (id: string) => {
         setSelectedIds((prev) => {
             const next = new Set(prev);
-            if (next.has(id)) { next.delete(id); } else { next.add(id); }
+
+            if (next.has(id)) {
+ next.delete(id); 
+} else {
+ next.add(id); 
+}
+
             return next;
         });
     };
@@ -72,6 +78,34 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     };
 
     const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBatchDelete = () => {
+        const ids = Array.from(selectedIds);
+
+        if (ids.length === 0) {
+return;
+}
+
+        if (!window.confirm(`Delete ${ids.length} selected DTR(s)?`)) {
+            return;
+        }
+
+        router.post(dtrBatchDeletePath, { ids }, {
+            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => {
+                clearSelection();
+                toast.success(`${ids.length} DTR(s) deleted successfully.`);
+            },
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+
+                if (messages.length > 0) {
+                    toast.error(messages[0]);
+                }
+            },
+        });
+    };
 
     const selectionCount = selectedIds.size;
     const isAllSelected = selectionCount === dtrs.length && dtrs.length > 0;
@@ -133,10 +167,12 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
                 if (selectedDtr?.id === dtr.id) {
                     handleDetailsDialogChange(false);
                 }
+
                 toast.success('DTR deleted successfully.');
             },
             onError: (errors) => {
                 const messages = Object.values(errors).filter(Boolean);
+
                 if (messages.length > 0) {
                     toast.error(messages[0]);
                 }
@@ -159,7 +195,10 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
 
     const exportSelectedAsPdf = () => {
         const ids = dtrs.filter((d) => selectedIds.has(d.id)).map((d) => d.id);
-        if (ids.length === 0) return;
+
+        if (ids.length === 0) {
+return;
+}
 
         const form = document.createElement('form');
         form.method = 'POST';
@@ -185,7 +224,10 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
 
     const exportSelectedAsCsv = () => {
         const selected = dtrs.filter((d) => selectedIds.has(d.id));
-        if (selected.length === 0) return;
+
+        if (selected.length === 0) {
+return;
+}
 
         const allMetaRows: Record<string, string>[] = [];
         const allSummaryRows: Record<string, string>[] = [];
@@ -395,6 +437,7 @@ export function useDtrHistory(dtrs: SummaryDtr[]) {
     return {
         clearSelection,
         deleteDtr,
+        handleBatchDelete,
         deletingDtrId,
         exportDtrAsCsv,
         exportDtrAsPdf,

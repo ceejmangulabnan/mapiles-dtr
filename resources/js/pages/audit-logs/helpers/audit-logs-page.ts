@@ -55,6 +55,7 @@ export const monthOptions = Array.from({ length: 12 }, (_, i) => ({
 
 export const yearOptions = (): string[] => {
     const current = new Date().getFullYear();
+
     return Array.from({ length: 11 }, (_, i) => String(current - 5 + i));
 };
 

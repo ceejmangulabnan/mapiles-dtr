@@ -65,6 +65,23 @@ class EmployeeController extends Controller
         return to_route('employees.index')->with('success', 'Employee deleted successfully.');
     }
 
+    public function batchDestroy(Request $request): RedirectResponse
+    {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to delete employees.');
+        }
+
+        $ids = $request->input('ids', []);
+
+        if (! is_array($ids) || $ids === []) {
+            return back()->with('error', 'No employees selected.');
+        }
+
+        $count = Employee::whereIn('id', $ids)->delete();
+
+        return to_route('employees.index')->with('success', "{$count} employee(s) deleted successfully.");
+    }
+
     public function updateStatus(UpdateUserStatusRequest $request, Employee $employee): RedirectResponse
     {
         if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {

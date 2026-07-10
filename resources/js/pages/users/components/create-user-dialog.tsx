@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/spinner';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import PasswordInput from '@/components/password-input';
 import {
     Select,
     SelectContent,
@@ -21,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { store as createUserRoute } from '@/routes/users';
 
 type CreateUserDialogProps = {
