@@ -31,12 +31,13 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Since .env is in .dockerignore, create a minimal env so artisan commands work.
 RUN cp .env.example .env && \
     php artisan key:generate && \
-    php artisan wayfinder:generate && \
-    rm .env
+    php artisan wayfinder:generate
 
 RUN npm cache clean --force && \
     npm install --include=optional --platform=linux --arch=x64 && \
     npm run build
+
+RUN rm .env
 
 
 FROM php:8.3-fpm
