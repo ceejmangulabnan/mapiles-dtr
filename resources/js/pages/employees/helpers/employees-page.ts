@@ -109,6 +109,8 @@ export const defaultEmployeeFormData = (): EmployeeFormData => ({
 
 export const employeePath = (employeeId: string) => `/employees/${employeeId}`;
 
+export const batchDeletePath = '/employees/batch-delete';
+
 export const employeeToFormData = (
     employee: EmployeeRow,
 ): EmployeeFormData => ({

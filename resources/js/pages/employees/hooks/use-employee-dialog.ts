@@ -126,6 +126,7 @@ export function useEmployeeDialog() {
 
         const onError = (errors: Record<string, string>) => {
             const messages = Object.values(errors).filter(Boolean);
+
             if (messages.length > 0) {
                 toast.error(messages[0], {
                     description:
@@ -166,6 +167,7 @@ export function useEmployeeDialog() {
             onSuccess: () => toast.success('Employee deleted successfully.'),
             onError: (errors) => {
                 const messages = Object.values(errors).filter(Boolean);
+
                 if (messages.length > 0) {
                     toast.error(messages[0]);
                 }

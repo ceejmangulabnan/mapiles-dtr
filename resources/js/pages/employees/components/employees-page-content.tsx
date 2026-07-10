@@ -1,7 +1,8 @@
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import Heading from '@/components/heading';
 import { Can } from '@/components/can';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +12,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -19,14 +21,15 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { updateStatus } from '@/routes/employees';
 import {
+    batchDeletePath,
     breadcrumbs,
     formatDaySet,
     formatTime,
 } from '../helpers/employees-page';
 import type { EmployeesPageProps, EmployeeRow } from '../helpers/employees-page';
 import { useEmployeeDialog } from '../hooks/use-employee-dialog';
-import { updateStatus } from '@/routes/employees';
 import EmployeeDialog from './employee-dialog';
 
 const statusColor = (status: string) => {
@@ -54,12 +57,67 @@ export default function EmployeesPageContent({
 }: EmployeesPageProps) {
     const dialog = useEmployeeDialog();
 
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+
+            if (next.has(id)) {
+ next.delete(id); 
+} else {
+ next.add(id); 
+}
+
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === employees.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(employees.map((e) => e.id)));
+        }
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBatchDelete = () => {
+        const ids = Array.from(selectedIds);
+
+        if (ids.length === 0) {
+return;
+}
+
+        if (!window.confirm(`Delete ${ids.length} selected employee(s)?`)) {
+            return;
+        }
+
+        router.post(batchDeletePath, { ids }, {
+            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => {
+                clearSelection();
+                toast.success(`${ids.length} employee(s) deleted successfully.`);
+            },
+            onError: (errors) => {
+                const messages = Object.values(errors).filter(Boolean);
+
+                if (messages.length > 0) {
+                    toast.error(messages[0]);
+                }
+            },
+        });
+    };
+
     const handleStatusChange = (employee: EmployeeRow, newStatus: string) => {
         router.patch(updateStatus({ employee: employee.id }).url, {
             status: newStatus,
             onSuccess: () => toast.success('Employee status updated.'),
             onError: (errors) => {
                 const messages = Object.values(errors).filter(Boolean);
+
                 if (messages.length > 0) {
                     toast.error(messages[0]);
                 }
@@ -106,6 +164,34 @@ export default function EmployeesPageContent({
                         <CardTitle>Employee List</CardTitle>
                     </CardHeader>
                     <CardContent>
+                        {selectedIds.size > 0 && (
+                            <div className="mb-4 flex items-center gap-3 rounded-lg border bg-muted/20 px-4 py-2">
+                                <span className="text-sm font-medium">
+                                    {selectedIds.size} selected
+                                </span>
+                                <div className="ml-auto flex gap-2">
+                                    <Can permission="delete-employees">
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={handleBatchDelete}
+                                        >
+                                            Delete Selected
+                                        </Button>
+                                    </Can>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={clearSelection}
+                                    >
+                                        Clear
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
                         {employees.length === 0 ? (
                             <div className="rounded-lg border border-dashed px-6 py-12 text-center">
                                 <p className="text-sm font-medium">
@@ -121,6 +207,20 @@ export default function EmployeesPageContent({
                                 <table className="min-w-full divide-y divide-border text-sm">
                                     <thead>
                                         <tr className="text-left text-muted-foreground">
+                                            <Can permission="delete-employees">
+                                                <th className="w-10 py-3 pr-4">
+                                                    <Checkbox
+                                                        checked={
+                                                            selectedIds.size ===
+                                                                employees.length &&
+                                                            employees.length > 0
+                                                        }
+                                                        onCheckedChange={
+                                                            toggleSelectAll
+                                                        }
+                                                    />
+                                                </th>
+                                            </Can>
                                             <th className="py-3 pr-4 font-medium">
                                                 Employee
                                             </th>
@@ -139,7 +239,30 @@ export default function EmployeesPageContent({
                                     </thead>
                                     <tbody className="divide-y divide-border">
                                         {employees.map((employee) => (
-                                            <tr key={employee.id}>
+                                            <tr
+                                                key={employee.id}
+                                                className={
+                                                    selectedIds.has(
+                                                        employee.id,
+                                                    )
+                                                        ? 'bg-muted/20'
+                                                        : ''
+                                                }
+                                            >
+                                                <Can permission="delete-employees">
+                                                    <td className="w-10 py-4 pr-4 align-middle">
+                                                        <Checkbox
+                                                            checked={selectedIds.has(
+                                                                employee.id,
+                                                            )}
+                                                            onCheckedChange={() =>
+                                                                toggleSelect(
+                                                                    employee.id,
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                </Can>
                                                 <td className="py-4 pr-4 align-middle font-medium">
                                                     {employee.fullName}
                                                 </td>

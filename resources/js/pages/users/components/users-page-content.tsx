@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Can } from '@/components/can';
 import Heading from '@/components/heading';
@@ -18,8 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
 import { useAuth } from '@/hooks/use-auth';
+import AppLayout from '@/layouts/app-layout';
 import { destroy, updateStatus } from '@/routes/users';
 import { breadcrumbs } from '../helpers/users-page';
 import type { UsersPageProps, UserRow } from '../helpers/users-page';

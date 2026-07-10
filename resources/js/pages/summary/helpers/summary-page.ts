@@ -48,6 +48,7 @@ export const breadcrumbs: BreadcrumbItem[] = [
 
 export const dtrPath = (dtrId: string) => `/summary/${dtrId}`;
 export const dtrExportPath = (dtrId: string) => `/summary/${dtrId}/export`;
+export const dtrBatchDeletePath = '/summary/batch-delete';
 
 export function formatConfirmedAt(value: string | null): string {
     if (!value) {

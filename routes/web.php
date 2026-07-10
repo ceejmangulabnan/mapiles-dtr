@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
     Route::patch('employees/{employee}/status', [EmployeeController::class, 'updateStatus'])->name('employees.update-status');
     Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->middleware('can:access-admin-ui')->name('employees.destroy');
+    Route::post('employees/batch-delete', [EmployeeController::class, 'batchDestroy'])->middleware('can:access-admin-ui')->name('employees.batch-destroy');
     Route::get('calculate', [CalculateController::class, 'index'])->name('calculate.index');
     Route::post('calculate', [CalculateController::class, 'store'])->name('calculate.store');
     Route::get('summary', [SummaryController::class, 'index'])->name('summary.index');
@@ -24,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('ranking', [RankingController::class, 'index'])->name('ranking.index');
     Route::get('ranking/pdf', [RankingController::class, 'exportPdf'])->name('ranking.export-pdf');
     Route::post('ranking/batch-export', [RankingController::class, 'batchExport'])->name('ranking.batch-export');
+    Route::post('summary/batch-delete', [SummaryController::class, 'batchDestroy'])->name('summary.batch-destroy');
     Route::delete('summary/{dtr}', [SummaryController::class, 'destroy'])->name('summary.destroy');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

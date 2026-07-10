@@ -261,6 +261,23 @@ class SummaryController extends Controller
         return to_route('summary.index')->with('success', 'DTR deleted successfully.');
     }
 
+    public function batchDestroy(Request $request): RedirectResponse
+    {
+        if (! $request->user()->isAdmin() && ! $request->user()->isManagement()) {
+            return back()->with('error', 'You do not have permission to delete employee DTRs.');
+        }
+
+        $ids = $request->input('ids', []);
+
+        if (! is_array($ids) || $ids === []) {
+            return back()->with('error', 'No DTRs selected.');
+        }
+
+        $count = Dtr::whereIn('id', $ids)->delete();
+
+        return to_route('summary.index')->with('success', "{$count} DTR(s) deleted successfully.");
+    }
+
     protected function resolvedPeriodDate(Dtr $dtr): Carbon
     {
         $periodSource = $dtr->entries->first()?->work_date ?? $dtr->updated_at ?? $dtr->created_at ?? now();
