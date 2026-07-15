@@ -48,6 +48,66 @@
             pointer-events: none;
             white-space: nowrap;
         }
+
+        .remark-absent {
+            background-color: rgba(252, 165, 165, 0.35);
+        }
+
+        .remark-overtime {
+            background-color: rgba(253, 224, 71, 0.35);
+        }
+
+        .remark-halfday {
+            background-color: rgba(147, 197, 253, 0.35);
+        }
+
+        .remark-regular-holiday {
+            background-color: rgba(134, 239, 172, 0.35);
+        }
+
+        .remark-special-holiday {
+            background-color: rgba(253, 186, 116, 0.35);
+        }
+
+        .remark-late {
+            background-color: rgba(180, 130, 80, 0.35);
+        }
+
+        .legend {
+            margin-top: 8px;
+            margin-bottom: 4px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border: 1px solid #d1d5db;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .legend-color-absent { background-color: rgba(252, 165, 165, 0.35); }
+        .legend-color-overtime { background-color: rgba(253, 224, 71, 0.35); }
+        .legend-color-halfday { background-color: rgba(147, 197, 253, 0.35); }
+        .legend-color-regular-holiday { background-color: rgba(134, 239, 172, 0.35); }
+        .legend-color-special-holiday { background-color: rgba(253, 186, 116, 0.35); }
+        .legend-color-late { background-color: rgba(180, 130, 80, 0.35); }
     </style>
 </head>
 <body>
@@ -156,6 +216,35 @@
             </div>
         @endif
 
+        <div class="legend">
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color legend-color-absent"></span>
+                    <span>Absent</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-color-overtime"></span>
+                    <span>Overtime</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-color-halfday"></span>
+                    <span>Half Day</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-color-regular-holiday"></span>
+                    <span>Regular Holiday</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-color-special-holiday"></span>
+                    <span>Special Non Working Day</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-color-late"></span>
+                    <span>Late</span>
+                </div>
+            </div>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -170,7 +259,25 @@
             </thead>
             <tbody>
                 @foreach ($dtr['entries'] as $entry)
-                    <tr>
+                    @php
+                        $displayRate = $entry['isOvertime'] ? $entry['rateWithOvertime'] : ($entry['rate'] ?: '0');
+
+                        $rowClass = '';
+                        if ($entry['isAbsent']) {
+                            $rowClass = 'remark-absent';
+                        } elseif ($entry['isOvertime']) {
+                            $rowClass = 'remark-overtime';
+                        } elseif ($entry['isHalfDay']) {
+                            $rowClass = 'remark-halfday';
+                        } elseif ($entry['isLate']) {
+                            $rowClass = 'remark-late';
+                        } elseif ($entry['holidayType'] === 'regularHoliday') {
+                            $rowClass = 'remark-regular-holiday';
+                        } elseif ($entry['holidayType'] === 'specialWorkingHoliday') {
+                            $rowClass = 'remark-special-holiday';
+                        }
+                    @endphp
+                    <tr class="{{ $rowClass }}">
                         <td>{{ $entry['label'] }}</td>
                         <td>{{ $entry['weekday'] }}</td>
                         <td>{{ $entry['timeIn'] ?: '--' }}</td>
@@ -183,7 +290,7 @@
                             @endswitch
                         </td>
                         <td>{{ floor($entry['workedMinutes'] / 60) }}h{{ $entry['workedMinutes'] % 60 > 0 ? ' ' . ($entry['workedMinutes'] % 60) . 'm' : '' }}</td>
-                        <td>PHP {{ number_format((float) ($entry['rate'] ?: '0'), 2) }}</td>
+                        <td>PHP {{ number_format((float) $displayRate, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>

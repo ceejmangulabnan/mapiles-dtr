@@ -199,6 +199,7 @@ class CalculateController extends Controller
                                     $baseRate,
                                     $holidayType,
                                     $entry['time_in'] ?? null,
+                                    $entry['time_out'] ?? null,
                                     $scheduleDay['startTime'] ?? null,
                                     (int) ($scheduleDay['graceMinutes'] ?? 0),
                                 )),
@@ -540,6 +541,7 @@ class CalculateController extends Controller
         ?string $baseRate,
         string $holidayType,
         mixed $timeIn,
+        mixed $timeOut,
         mixed $scheduledTimeIn,
         int $graceMinutes,
     ): ?string {
@@ -558,6 +560,13 @@ class CalculateController extends Controller
 
         if ($actualTimeInMinutes >= $scheduledTimeInMinutes + self::HALF_DAY_THRESHOLD_MINUTES) {
             return $this->formatRate($adjustedRate / 2);
+        }
+
+        if ($timeIn !== null && $timeOut !== null) {
+            $workedMinutes = $this->resolveWorkedMinutes($timeIn, $timeOut);
+            if ($workedMinutes > 0 && $workedMinutes <= self::HALF_DAY_THRESHOLD_MINUTES + 60) {
+                return $this->formatRate($adjustedRate / 2);
+            }
         }
 
         $lateMinutes = max(0, $actualTimeInMinutes - $scheduledTimeInMinutes - max(0, $graceMinutes));
