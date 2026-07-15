@@ -140,3 +140,21 @@
         @apply bg-background text-foreground;
     }
 }
+
+[data-slot="sidebar-menu-button"][data-active="true"] {
+    position: relative;
+    background-color: var(--sidebar-accent) !important;
+    color: var(--sidebar-accent-foreground) !important;
+    font-weight: 500;
+}
+
+[data-slot="sidebar-menu-button"][data-active="true"]::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    background-color: #10b981;
+    border-radius: 0 2px 2px 0;
+}

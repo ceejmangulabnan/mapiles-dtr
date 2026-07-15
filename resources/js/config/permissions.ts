@@ -8,6 +8,7 @@ export type Permission =
     | 'view-calculate'
     | 'view-summary'
     | 'view-ranking'
+    | 'view-schedule'
     | 'manage-users'
     | 'delete-users'
     | 'export-dtr'
@@ -38,7 +39,7 @@ const PERMISSIONS: Record<Role, Permission[]> = {
         'export-dtr',
         'delete-dtr',
     ],
-    employee: ['view-ranking'],
+    employee: ['view-ranking', 'view-schedule'],
 };
 
 export function roleCan(role: Role, permission: Permission): boolean {

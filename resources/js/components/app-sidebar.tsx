@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Calculator, FileText, ScrollText, Shield, Trophy, Users } from 'lucide-react';
+import { Calculator, Calendar, FileText, ScrollText, Shield, Trophy, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -17,6 +17,7 @@ import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as calculateIndex } from '@/routes/calculate';
 import { index as employeesIndex } from '@/routes/employees';
 import { index as rankingIndex } from '@/routes/ranking';
+import { index as scheduleIndex } from '@/routes/schedule';
 import { index as summaryIndex } from '@/routes/summary';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -26,6 +27,7 @@ const ALL_NAV_ITEMS: (NavItem & { permission?: string })[] = [
     { title: 'Calculate', href: calculateIndex(), icon: Calculator, permission: 'view-calculate' },
     { title: 'Summary', href: summaryIndex(), icon: FileText, permission: 'view-summary' },
     { title: 'Ranking', href: rankingIndex(), icon: Trophy, permission: 'view-ranking' },
+    { title: 'My Schedule', href: scheduleIndex(), icon: Calendar, permission: 'view-schedule' },
     { title: 'Users', href: usersIndex(), icon: Shield, permission: 'manage-users' },
     { title: 'Audit Logs', href: auditLogsIndex(), icon: ScrollText, permission: 'view-audit-logs' },
 ];
