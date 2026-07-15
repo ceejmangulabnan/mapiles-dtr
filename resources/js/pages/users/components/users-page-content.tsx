@@ -18,9 +18,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
 import AppLayout from '@/layouts/app-layout';
-import { destroy, updateStatus } from '@/routes/users';
+import { destroy, linkEmployee, unlinkEmployee, updateStatus } from '@/routes/users';
 import { breadcrumbs } from '../helpers/users-page';
 import type { UsersPageProps, UserRow } from '../helpers/users-page';
 import CreateUserDialog from './create-user-dialog';
@@ -46,6 +47,7 @@ const statusColor = (status: string) => {
 
 export default function UsersPageContent({
     users,
+    unlinkedEmployees,
 }: UsersPageProps) {
     const auth = useAuth();
     const isAdmin = auth.user.role === 'admin';
@@ -53,6 +55,7 @@ export default function UsersPageContent({
     const canManage = isAdmin || isManagement;
     const isCurrentUser = (user: UserRow) => user.id === auth.user.id;
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [linkingUserId, setLinkingUserId] = useState<string | null>(null);
 
     const handleStatusChange = (user: UserRow, newStatus: string) => {
         router.patch(updateStatus({ user: user.id }).url, { status: newStatus }, {
@@ -71,6 +74,37 @@ export default function UsersPageContent({
                 onError: (errors) => {
                     const messages = Object.values(errors).filter(Boolean);
                     toast.error(messages[0] ?? 'Failed to delete user.');
+                },
+            });
+        }
+    };
+
+    const handleLinkEmployee = (user: UserRow, employeeId: string) => {
+        setLinkingUserId(user.id);
+        router.post(
+            linkEmployee({ user: user.id }).url,
+            { employee_id: employeeId },
+            {
+                onSuccess: () => {
+                    toast.success('Employee linked successfully.');
+                    setLinkingUserId(null);
+                },
+                onError: (errors) => {
+                    const messages = Object.values(errors).filter(Boolean);
+                    toast.error(messages[0] ?? 'Failed to link employee.');
+                    setLinkingUserId(null);
+                },
+            },
+        );
+    };
+
+    const handleUnlinkEmployee = (user: UserRow) => {
+        if (confirm(`Unlink employee from ${user.name}?`)) {
+            router.delete(unlinkEmployee({ user: user.id }).url, {
+                onSuccess: () => toast.success('Employee unlinked successfully.'),
+                onError: (errors) => {
+                    const messages = Object.values(errors).filter(Boolean);
+                    toast.error(messages[0] ?? 'Failed to unlink employee.');
                 },
             });
         }
@@ -98,7 +132,7 @@ export default function UsersPageContent({
                 </div>
 
 
-<Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>User Accounts</CardTitle>
                     </CardHeader>
@@ -126,6 +160,11 @@ export default function UsersPageContent({
                                             <th className="px-4 py-3 font-medium">
                                                 Status
                                             </th>
+                                            {canManage && (
+                                                <th className="px-4 py-3 font-medium">
+                                                    Linked Employee
+                                                </th>
+                                            )}
                                             {canManage && (
                                                 <th className="px-4 py-3 font-medium">
                                                     Actions
@@ -157,6 +196,65 @@ export default function UsersPageContent({
                                                         {user.status}
                                                     </Badge>
                                                 </td>
+                                                {canManage && (
+                                                    <td className="px-4 py-4 align-middle">
+                                                        {user.role === 'employee' ? (
+                                                            user.employee ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-foreground">
+                                                                        {user.employee.full_name}
+                                                                    </span>
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                                                        onClick={() => handleUnlinkEmployee(user)}
+                                                                    >
+                                                                        Unlink
+                                                                    </Button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2">
+                                                                    {linkingUserId === user.id ? (
+                                                                        <Spinner className="h-4 w-4" />
+                                                                    ) : (
+                                                                        <Select
+                                                                            value=""
+                                                                            onValueChange={(value) =>
+                                                                                handleLinkEmployee(user, value)
+                                                                            }
+                                                                        >
+                                                                            <SelectTrigger className="h-8 w-48">
+                                                                                <SelectValue placeholder="Link employee..." />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {unlinkedEmployees.length === 0 ? (
+                                                                                    <SelectItem value="none" disabled>
+                                                                                        No unlinked employees
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    unlinkedEmployees.map((employee) => (
+                                                                                        <SelectItem
+                                                                                            key={employee.id}
+                                                                                            value={employee.id}
+                                                                                        >
+                                                                                            {employee.full_name}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                        ) : (
+                                                            <span className="text-muted-foreground">
+                                                                &mdash;
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                )}
                                                 {canManage && (
                                                     <td className="px-4 py-4 align-middle">
                                                         <div className="flex items-center gap-2">
