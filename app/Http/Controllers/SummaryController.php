@@ -101,6 +101,10 @@ class SummaryController extends Controller
         $dailyRateBasis = $this->resolvedDailyRateBasis($dtr);
         $hasOvertime = (int) $dtr->total_overtime_minutes > 0;
 
+        $employee = $dtr->employee;
+        $hourlyRate = $this->resolvedHourlyRateForEmployee($employee);
+        $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
+
         $filename = sprintf(
             'dtr-%s-%s-%s.pdf',
             preg_replace('/[^a-z0-9]+/', '-', strtolower($employeeName)),
@@ -109,6 +113,75 @@ class SummaryController extends Controller
         );
 
         $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
+
+        $entriesData = $dtr->entries->map(function ($entry) use ($scheduleByDay, $hourlyRate): array {
+            $workDate = Carbon::parse($entry->work_date);
+            $scheduleDay = $scheduleByDay->get((int) $workDate->dayOfWeek);
+
+            $timeIn = $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '';
+            $timeOut = $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '';
+            $workedMinutes = (int) $entry->worked_minutes;
+            $rate = (float) ($entry->rate ?? 0);
+
+            $isAbsent = $timeIn === ''
+                && $timeOut === ''
+                && $workedMinutes === 0
+                && $rate === 0.0;
+
+            $isAbsentOnRegularHoliday = $isAbsent && (string) $entry->holiday_type === 'regularHoliday';
+
+            $scheduledWorkedMinutes = 0;
+            $scheduledTimeInMinutes = null;
+            $graceMinutes = 0;
+            if (! $isAbsent && $scheduleDay) {
+                $scheduledWorkedMinutes = $this->resolveWorkedMinutesFromSchedule(
+                    $scheduleDay['startTime'] ?? null,
+                    $scheduleDay['endTime'] ?? null,
+                );
+                $scheduledTimeInMinutes = $this->minutesFromTimeString($scheduleDay['startTime'] ?? null);
+                $graceMinutes = (int) ($employee->grace_period_minutes ?? 0);
+            }
+
+            $overtimeMinutes = $isAbsent ? 0 : max(0, $workedMinutes - $scheduledWorkedMinutes);
+
+            $isHalfDayLateArrival = false;
+            $isLate = false;
+            if (! $isAbsent && $timeIn !== '' && $scheduledTimeInMinutes !== null) {
+                $actualTimeInMinutes = $this->minutesFromTimeString($timeIn);
+                if ($actualTimeInMinutes !== null) {
+                    $isHalfDayLateArrival = $actualTimeInMinutes >= $scheduledTimeInMinutes + 180;
+                    $isLate = ! $isHalfDayLateArrival && $actualTimeInMinutes > $scheduledTimeInMinutes + $graceMinutes;
+                }
+            }
+
+            $isHalfDayEarlyOut = ! $isAbsent && $workedMinutes > 0 && $workedMinutes <= 240;
+
+            $isHalfDay = $isHalfDayLateArrival || $isHalfDayEarlyOut;
+
+            $isOvertime = $overtimeMinutes > 0;
+
+            $overtimeAmount = $isOvertime ? ($overtimeMinutes / 60) * $hourlyRate * 1.25 : 0;
+            $rateWithOvertime = $rate + $overtimeAmount;
+
+            return [
+                'date' => $workDate->toDateString(),
+                'label' => $workDate->format('M j'),
+                'weekday' => $workDate->format('l'),
+                'timeIn' => $timeIn,
+                'timeOut' => $timeOut,
+                'holidayType' => (string) $entry->holiday_type,
+                'workedMinutes' => $workedMinutes,
+                'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
+                'rate' => $entry->rate !== null ? (string) $entry->rate : '',
+                'rateWithOvertime' => number_format(round($rateWithOvertime, 2), 2, '.', ''),
+                'isAbsent' => $isAbsent,
+                'isAbsentOnRegularHoliday' => $isAbsentOnRegularHoliday,
+                'isHalfDay' => $isHalfDay,
+                'isLate' => $isLate,
+                'isOvertime' => $isOvertime,
+                'overtimeMinutes' => $overtimeMinutes,
+            ];
+        })->values()->all();
 
         $pdf = Pdf::loadView('pdf.dtr-summary', [
             'employeeName' => $employeeName,
@@ -125,21 +198,7 @@ class SummaryController extends Controller
             'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
             'watermarkLabel' => $watermarkLabel,
-            'entries' => $dtr->entries->map(function ($entry): array {
-                $workDate = Carbon::parse($entry->work_date);
-
-                return [
-                    'date' => $workDate->toDateString(),
-                    'label' => $workDate->format('M j'),
-                    'weekday' => $workDate->format('l'),
-                    'timeIn' => $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '',
-                    'timeOut' => $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '',
-                    'holidayType' => (string) $entry->holiday_type,
-                    'workedMinutes' => (int) $entry->worked_minutes,
-                    'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
-                    'rate' => $entry->rate !== null ? (string) $entry->rate : '',
-                ];
-            })->values()->all(),
+            'entries' => $entriesData,
         ])->setPaper('a4', 'portrait');
 
         $this->auditLogger->log('export-dtr-pdf', $dtr);
@@ -191,12 +250,85 @@ class SummaryController extends Controller
             $regularAmount = $this->resolvedRegularAmount($dtr);
             $dailyRateBasis = $this->resolvedDailyRateBasis($dtr);
 
+            $employee = $dtr->employee;
+            $hourlyRate = $this->resolvedHourlyRateForEmployee($employee);
+            $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
+
             $filename = sprintf(
                 'dtr-%s-%s-%s.pdf',
                 preg_replace('/[^a-z0-9]+/', '-', strtolower($employeeName)),
                 $year,
                 str_pad((string) $month, 2, '0', STR_PAD_LEFT),
             );
+
+            $entriesData = $dtr->entries->map(function ($entry) use ($scheduleByDay, $hourlyRate): array {
+                $workDate = Carbon::parse($entry->work_date);
+                $scheduleDay = $scheduleByDay->get((int) $workDate->dayOfWeek);
+
+                $timeIn = $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '';
+                $timeOut = $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '';
+                $workedMinutes = (int) $entry->worked_minutes;
+                $rate = (float) ($entry->rate ?? 0);
+
+                $isAbsent = $timeIn === ''
+                    && $timeOut === ''
+                    && $workedMinutes === 0
+                    && $rate === 0.0;
+
+                $isAbsentOnRegularHoliday = $isAbsent && (string) $entry->holiday_type === 'regularHoliday';
+
+                $scheduledWorkedMinutes = 0;
+                $scheduledTimeInMinutes = null;
+                $graceMinutes = 0;
+                if (! $isAbsent && $scheduleDay) {
+                    $scheduledWorkedMinutes = $this->resolveWorkedMinutesFromSchedule(
+                        $scheduleDay['startTime'] ?? null,
+                        $scheduleDay['endTime'] ?? null,
+                    );
+                    $scheduledTimeInMinutes = $this->minutesFromTimeString($scheduleDay['startTime'] ?? null);
+                    $graceMinutes = (int) ($employee->grace_period_minutes ?? 0);
+                }
+
+                $overtimeMinutes = $isAbsent ? 0 : max(0, $workedMinutes - $scheduledWorkedMinutes);
+
+                $isHalfDayLateArrival = false;
+                $isLate = false;
+                if (! $isAbsent && $timeIn !== '' && $scheduledTimeInMinutes !== null) {
+                    $actualTimeInMinutes = $this->minutesFromTimeString($timeIn);
+                    if ($actualTimeInMinutes !== null) {
+                        $isHalfDayLateArrival = $actualTimeInMinutes >= $scheduledTimeInMinutes + 180;
+                        $isLate = ! $isHalfDayLateArrival && $actualTimeInMinutes > $scheduledTimeInMinutes + $graceMinutes;
+                    }
+                }
+
+                $isHalfDayEarlyOut = ! $isAbsent && $workedMinutes > 0 && $workedMinutes <= 240;
+
+                $isHalfDay = $isHalfDayLateArrival || $isHalfDayEarlyOut;
+
+                $isOvertime = $overtimeMinutes > 0;
+
+                $overtimeAmount = $isOvertime ? ($overtimeMinutes / 60) * $hourlyRate * 1.25 : 0;
+                $rateWithOvertime = $rate + $overtimeAmount;
+
+                return [
+                    'date' => $workDate->toDateString(),
+                    'label' => $workDate->format('M j'),
+                    'weekday' => $workDate->format('l'),
+                    'timeIn' => $timeIn,
+                    'timeOut' => $timeOut,
+                    'holidayType' => (string) $entry->holiday_type,
+                    'workedMinutes' => $workedMinutes,
+                    'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
+                    'rate' => $entry->rate !== null ? (string) $entry->rate : '',
+                    'rateWithOvertime' => number_format(round($rateWithOvertime, 2), 2, '.', ''),
+                    'isAbsent' => $isAbsent,
+                    'isAbsentOnRegularHoliday' => $isAbsentOnRegularHoliday,
+                    'isHalfDay' => $isHalfDay,
+                    'isLate' => $isLate,
+                    'isOvertime' => $isOvertime,
+                    'overtimeMinutes' => $overtimeMinutes,
+                ];
+            })->values()->all();
 
             $pdf = Pdf::loadView('pdf.dtr-summary', [
                 'employeeName' => $employeeName,
@@ -213,21 +345,7 @@ class SummaryController extends Controller
                 'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                 'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                 'watermarkLabel' => $watermarkLabel,
-                'entries' => $dtr->entries->map(function ($entry): array {
-                    $workDate = Carbon::parse($entry->work_date);
-
-                    return [
-                        'date' => $workDate->toDateString(),
-                        'label' => $workDate->format('M j'),
-                        'weekday' => $workDate->format('l'),
-                        'timeIn' => $entry->time_in !== null ? substr($entry->time_in, 0, 5) : '',
-                        'timeOut' => $entry->time_out !== null ? substr($entry->time_out, 0, 5) : '',
-                        'holidayType' => (string) $entry->holiday_type,
-                        'workedMinutes' => (int) $entry->worked_minutes,
-                        'baseRate' => $entry->base_rate !== null ? (string) $entry->base_rate : '',
-                        'rate' => $entry->rate !== null ? (string) $entry->rate : '',
-                    ];
-                })->values()->all(),
+                'entries' => $entriesData,
             ])->setPaper('a4', 'portrait');
 
             $pdfContent = $pdf->output();
@@ -323,5 +441,114 @@ class SummaryController extends Controller
             'specialWorkingHoliday' => 1.3,
             default => 1.0,
         };
+    }
+
+    protected function resolvedHourlyRateForEmployee($employee): float
+    {
+        if ($employee?->hourly_rate !== null && (float) $employee->hourly_rate > 0) {
+            return (float) $employee->hourly_rate;
+        }
+
+        $dailyRate = $this->resolvedDailyRateForEmployee($employee);
+
+        return $dailyRate > 0 ? $dailyRate / 8 : 0;
+    }
+
+    protected function resolvedDailyRateForEmployee($employee): float
+    {
+        if ($employee?->daily_rate !== null && (float) $employee->daily_rate > 0) {
+            return (float) $employee->daily_rate;
+        }
+
+        if ($employee?->monthly_rate !== null && (float) $employee->monthly_rate > 0) {
+            return (float) $employee->monthly_rate / 26;
+        }
+
+        return 0;
+    }
+
+    protected function storedSchedule($employee): array
+    {
+        $storedSchedule = is_array($employee->weekly_schedule) ? $employee->weekly_schedule : [];
+
+        if ($storedSchedule !== []) {
+            return collect($storedSchedule)
+                ->filter(fn (mixed $scheduleDay): bool => is_array($scheduleDay) && array_key_exists('day', $scheduleDay))
+                ->map(fn (array $scheduleDay): array => [
+                    'day' => (int) $scheduleDay['day'],
+                    'startTime' => $this->formatScheduleTime($scheduleDay['start_time'] ?? $employee->scheduled_start_time),
+                    'endTime' => $this->formatScheduleTime($scheduleDay['end_time'] ?? $employee->scheduled_end_time),
+                ])
+                ->sortBy('day')
+                ->values()
+                ->all();
+        }
+
+        return collect($employee->work_days ?? [])
+            ->map(fn (mixed $day): array => [
+                'day' => (int) $day,
+                'startTime' => $this->formatScheduleTime($employee->scheduled_start_time),
+                'endTime' => $this->formatScheduleTime($employee->scheduled_end_time),
+            ])
+            ->sortBy('day')
+            ->values()
+            ->all();
+    }
+
+    protected function formatScheduleTime(mixed $time): string
+    {
+        $value = is_string($time) ? $time : '';
+
+        if ($value === '') {
+            return '';
+        }
+
+        return strlen($value) >= 5 ? substr($value, 0, 5) : $value;
+    }
+
+    protected function resolveWorkedMinutesFromSchedule(?string $startTime, ?string $endTime): int
+    {
+        if ($startTime === null || $startTime === '' || $endTime === null || $endTime === '') {
+            return 0;
+        }
+
+        $startMinutes = $this->minutesFromTimeString($startTime);
+        $endMinutes = $this->minutesFromTimeString($endTime);
+
+        if ($startMinutes === null || $endMinutes === null) {
+            return 0;
+        }
+
+        $totalMinutes = $endMinutes - $startMinutes;
+
+        if ($totalMinutes <= 0) {
+            return 0;
+        }
+
+        $breakMinutes = 60;
+
+        return max(0, $totalMinutes - $breakMinutes);
+    }
+
+    protected function minutesFromTimeString(?string $time): ?int
+    {
+        if (! is_string($time) || $time === '' || strlen($time) < 5) {
+            return null;
+        }
+
+        $parts = explode(':', substr($time, 0, 5));
+
+        if (count($parts) !== 2) {
+            return null;
+        }
+
+        $hours = (int) $parts[0];
+        $minutes = (int) $parts[1];
+
+        if ($hours < 0 || $hours > 23 || $minutes < 0 || $minutes > 59) {
+            return null;
+        }
+
+        return $hours * 60 + $minutes;
     }
 }
