@@ -13,6 +13,7 @@ export interface CalendarDay {
     dayOfWeek: number;
     isInMonth: boolean;
     isScheduled: boolean;
+    isPast: boolean;
     start_time: string | null;
     end_time: string | null;
 }
@@ -32,6 +33,7 @@ export interface ScheduleData {
     calendar_days: CalendarDay[];
     scheduled_days_count: number;
     total_hours: number;
+    remaining_hours: number;
     next_shift: Shift | null;
     upcoming_shifts: Shift[];
     schedule_by_day: Record<number, ScheduleDay>;

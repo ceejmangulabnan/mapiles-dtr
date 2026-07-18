@@ -90,11 +90,15 @@ class ScheduleController extends Controller
             }
         }
 
+        $today = Carbon::today();
+        $remainingMinutes = 0;
+
         $current = $monthStart->copy()->startOfWeek(Carbon::SUNDAY);
         while ($current->lte($monthEnd->copy()->endOfWeek(Carbon::SATURDAY))) {
             $dayOfWeek = (int) $current->dayOfWeek;
             $isInMonth = $current->month === $month && $current->year === $year;
             $isScheduled = isset($scheduleByDay[$dayOfWeek]);
+            $isPast = $current->lt($today);
 
             $calendarDays[] = [
                 'date' => $current->toDateString(),
@@ -102,6 +106,7 @@ class ScheduleController extends Controller
                 'dayOfWeek' => $dayOfWeek,
                 'isInMonth' => $isInMonth,
                 'isScheduled' => $isScheduled && $isInMonth,
+                'isPast' => $isPast,
                 'start_time' => $isScheduled ? $scheduleByDay[$dayOfWeek]['start_time'] : null,
                 'end_time' => $isScheduled ? $scheduleByDay[$dayOfWeek]['end_time'] : null,
             ];
@@ -109,12 +114,15 @@ class ScheduleController extends Controller
             if ($isInMonth && $isScheduled) {
                 $scheduledDaysCount++;
                 $totalMinutesPerMonth += $dailyMinutes;
+
+                if (! $isPast) {
+                    $remainingMinutes += $dailyMinutes;
+                }
             }
 
             $current->addDay();
         }
 
-        $today = Carbon::today();
         $nextShift = null;
         $upcomingShifts = [];
 
@@ -154,6 +162,7 @@ class ScheduleController extends Controller
             'calendar_days' => $calendarDays,
             'scheduled_days_count' => $scheduledDaysCount,
             'total_hours' => round($totalMinutesPerMonth / 60, 1),
+            'remaining_hours' => round($remainingMinutes / 60, 1),
             'next_shift' => $nextShift,
             'upcoming_shifts' => array_slice($upcomingShifts, 0, 5),
             'schedule_by_day' => $scheduleByDay,

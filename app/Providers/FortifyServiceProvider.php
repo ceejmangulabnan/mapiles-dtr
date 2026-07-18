@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
@@ -45,6 +47,26 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::authenticateUsing($this->authenticateUser());
+    }
+
+    private function authenticateUser(): callable
+    {
+        return function (Request $request) {
+            $credentials = $request->only(Fortify::username(), 'password');
+
+            $user = User::where(Fortify::username(), $credentials[Fortify::username()])->first();
+
+            if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+                return null;
+            }
+
+            if ($user->isEmployee() && ! $user->employee()->exists()) {
+                return null;
+            }
+
+            return $user;
+        };
     }
 
     /**

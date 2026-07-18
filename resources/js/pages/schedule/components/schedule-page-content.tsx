@@ -147,9 +147,9 @@ export default function SchedulePageContent({
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardDescription>Total Hours</CardDescription>
+                            <CardDescription>Remaining Hours</CardDescription>
                             <CardTitle className="text-3xl font-bold">
-                                {formatDuration(schedule.total_hours)}
+                                {formatDuration(schedule.remaining_hours)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -199,7 +199,8 @@ export default function SchedulePageContent({
                                     className={`
                                         relative flex h-20 flex-col items-center justify-center rounded-md p-1
                                         ${!calendarDay.isInMonth ? 'bg-transparent' : ''}
-                                        ${calendarDay.isInMonth && calendarDay.isScheduled ? 'bg-[#10b981]' : ''}
+                                        ${calendarDay.isInMonth && calendarDay.isScheduled && calendarDay.isPast ? 'bg-gray-400 dark:bg-gray-600' : ''}
+                                        ${calendarDay.isInMonth && calendarDay.isScheduled && !calendarDay.isPast ? 'bg-[#10b981]' : ''}
                                         ${calendarDay.isInMonth && !calendarDay.isScheduled ? 'bg-muted/20' : ''}
                                     `}
                                 >
@@ -231,6 +232,10 @@ export default function SchedulePageContent({
                             <div className="flex items-center gap-2">
                                 <div className="h-3 w-3 rounded-sm bg-[#10b981]" />
                                 <span className="text-sm text-muted-foreground">Scheduled</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="h-3 w-3 rounded-sm bg-gray-400 dark:bg-gray-600" />
+                                <span className="text-sm text-muted-foreground">Past</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="h-3 w-3 rounded-sm bg-muted/20" />
