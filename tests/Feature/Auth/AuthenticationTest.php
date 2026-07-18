@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -11,7 +13,7 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['role' => UserRole::Admin]);
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -22,6 +24,31 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('employees.index', absolute: false));
 });
 
+test('employee role user without linked employee cannot authenticate', function () {
+    $user = User::factory()->create(['role' => UserRole::Employee]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors('email');
+});
+
+test('employee role user with linked employee can authenticate', function () {
+    $user = User::factory()->create(['role' => UserRole::Employee]);
+    Employee::factory()->create(['user_id' => $user->id]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('ranking.index', absolute: false));
+});
+
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
@@ -30,7 +57,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['role' => UserRole::Admin]);
 
     $user->forceFill([
         'two_factor_secret' => encrypt('test-secret'),
