@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class AuditLogger
 {
+    protected static bool $enabled = true;
+
     protected ?Request $request;
 
     public function __construct(?Request $request = null)
@@ -16,8 +18,33 @@ class AuditLogger
         $this->request = $request ?? request();
     }
 
-    public function log(string $action, Model $model, ?array $oldValues = null, ?array $newValues = null): AuditLog
+    public static function disable(): void
     {
+        self::$enabled = false;
+    }
+
+    public static function enable(): void
+    {
+        self::$enabled = true;
+    }
+
+    public static function disabled(callable $callback): mixed
+    {
+        self::disable();
+
+        try {
+            return $callback();
+        } finally {
+            self::enable();
+        }
+    }
+
+    public function log(string $action, Model $model, ?array $oldValues = null, ?array $newValues = null): ?AuditLog
+    {
+        if (! self::$enabled) {
+            return null;
+        }
+
         return AuditLog::create([
             'user_id' => Auth::id(),
             'action' => $action,
@@ -30,8 +57,12 @@ class AuditLogger
         ]);
     }
 
-    public function logWithoutModel(string $action, ?array $metadata = null): AuditLog
+    public function logWithoutModel(string $action, ?array $metadata = null): ?AuditLog
     {
+        if (! self::$enabled) {
+            return null;
+        }
+
         return AuditLog::create([
             'user_id' => Auth::id(),
             'action' => $action,
