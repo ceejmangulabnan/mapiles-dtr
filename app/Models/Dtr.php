@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'total_overtime_amount',
     'sss_deduction',
     'pagibig_deduction',
+    'philhealth_ee_share',
     'total_amount',
     'created_by',
     'updated_by',
@@ -39,6 +40,7 @@ class Dtr extends Model
             'total_overtime_amount' => 'decimal:2',
             'sss_deduction' => 'decimal:2',
             'pagibig_deduction' => 'decimal:2',
+            'philhealth_ee_share' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
     }

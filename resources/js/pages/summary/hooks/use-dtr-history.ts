@@ -248,6 +248,7 @@ return;
                 'Overtime Pay': formatRateAmount(dtr.totalOvertimeAmount),
                 'SSS Deduction': formatRateAmount(dtr.sssDeduction),
                 'Pag-IBIG Deduction': formatRateAmount(dtr.pagibigDeduction),
+                'PhilHealth Deduction': formatRateAmount(dtr.philhealthEeShare),
                 'Net Pay': formatRateAmount(dtr.totalAmount),
             });
             dtr.entries.forEach((entry) => {
@@ -403,6 +404,10 @@ return;
                         <div class="meta-card" style="color:#dc2626;">
                             <div class="label">Pag-IBIG deduction</div>
                             <div class="value">${escapeHtml(formatRateAmount(dtr.pagibigDeduction))}</div>
+                        </div>
+                        <div class="meta-card" style="color:#dc2626;">
+                            <div class="label">PhilHealth deduction</div>
+                            <div class="value">${escapeHtml(formatRateAmount(dtr.philhealthEeShare))}</div>
                         </div>
                         <div class="meta-card">
                             <div class="label">Total pay</div>

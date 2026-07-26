@@ -28,6 +28,7 @@ import {
     isHalfDayEarlyOut,
     monthOptions,
     pagibigContribution,
+    philhealthEeShare,
     sssContribution,
     SSS_BASE_SALARY,
     SSS_BASE_CONTRIBUTION,
@@ -77,6 +78,9 @@ export type DtrSummary = {
     pagibigContribution: number;
     pagibigDeductionLabel: string;
     pagibigDeduction: number;
+    philhealthContribution: number;
+    philhealthDeductionLabel: string;
+    philhealthDeduction: number;
     netPay: number;
     netPayLabel: string;
     totalAmountLabel: string;
@@ -149,6 +153,16 @@ function initialPagibigOverride(
     return activeDtr.pagibigDeduction;
 }
 
+function initialPhilhealthOverride(
+    activeDtr: ActiveDtr | null | undefined,
+): string {
+    if (!activeDtr || !activeDtr.philhealthEeShare) {
+        return '';
+    }
+
+    return activeDtr.philhealthEeShare;
+}
+
 function getHolidayAdjustmentLabel(holidayType: HolidayType): string {
     switch (holidayType) {
         case 'regularHoliday':
@@ -219,6 +233,9 @@ export function useCalculateAttendance(
     );
     const [manualPagibigOverride, setManualPagibigOverride] = useState<string>(
         () => initialPagibigOverride(activeDtr),
+    );
+    const [manualPhilhealthOverride, setManualPhilhealthOverride] = useState<string>(
+        () => initialPhilhealthOverride(activeDtr),
     );
 
     const selectedEmployee =
@@ -447,8 +464,21 @@ export function useCalculateAttendance(
         ? manualPagibig
         : autoPagibig;
 
+    const fullMonthlyPhilhealth = philhealthEeShare(selectedEmployee?.monthlyRate ?? '');
+    const autoPhilhealth =
+        selectedCalendarRange !== 'wholeMonth'
+            ? fullMonthlyPhilhealth / 2
+            : fullMonthlyPhilhealth;
+    const manualPhilhealth =
+        manualPhilhealthOverride.trim() !== ''
+            ? Number(manualPhilhealthOverride)
+            : NaN;
+    const philhealthDeduction = Number.isFinite(manualPhilhealth)
+        ? manualPhilhealth
+        : autoPhilhealth;
+
     const grossTotal = regularAmountTotal + overtimeSummary.totalAmount;
-    const netPay = Math.max(0, grossTotal - sssDeduction - pagibigDeduction);
+    const netPay = Math.max(0, grossTotal - sssDeduction - pagibigDeduction - philhealthDeduction);
 
     const dtrSummary: DtrSummary = {
         employeeName: selectedEmployee?.fullName ?? '',
@@ -468,6 +498,9 @@ export function useCalculateAttendance(
         pagibigContribution: autoPagibig,
         pagibigDeduction,
         pagibigDeductionLabel: formatRateAmount(pagibigDeduction),
+        philhealthContribution: autoPhilhealth,
+        philhealthDeduction,
+        philhealthDeductionLabel: formatRateAmount(philhealthDeduction),
         netPay,
         netPayLabel: formatRateAmount(netPay),
         totalAmountLabel: formatRateAmount(grossTotal),
@@ -706,6 +739,7 @@ export function useCalculateAttendance(
         setCurrentPage(1);
         setManualSssOverride('');
         setManualPagibigOverride('');
+        setManualPhilhealthOverride('');
         resetReviewState();
     };
 
@@ -779,6 +813,7 @@ export function useCalculateAttendance(
                 calendar_range: selectedCalendarRange,
                 sss_deduction: dtrSummary.sssDeduction,
                 pagibig_deduction: dtrSummary.pagibigDeduction,
+                philhealth_ee_share: dtrSummary.philhealthDeduction,
                 ...(isEditingFromSummary ? { source: 'summary' } : {}),
                 entries: summaryEntryData.map((entry) => ({
                     date: entry.key,
@@ -834,6 +869,7 @@ export function useCalculateAttendance(
         isSubmittingDtr,
         isSummaryDialogOpen,
         manualPagibigOverride,
+        manualPhilhealthOverride,
         manualSssOverride,
         monthDays,
         openRateComputation,
@@ -849,6 +885,7 @@ export function useCalculateAttendance(
         selectedRateComputation,
         selectedYear,
         setManualPagibigOverride,
+        setManualPhilhealthOverride,
         setManualSssOverride,
         startIndex,
         totalPages,

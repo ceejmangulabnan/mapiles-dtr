@@ -27,7 +27,7 @@
             position: fixed;
             top: 32px;
             right: 32px;
-            width: 80px;
+            width: 140px;
             height: auto;
         }
 
@@ -67,7 +67,7 @@
         .meta-table td {
             border: 1px solid #d1d5db;
             padding: 4px 10px;
-            width: 33.33%;
+            width: 25%;
         }
 
         .meta-label {
@@ -164,6 +164,35 @@
         .legend-color-regular-holiday { background-color: rgba(134, 239, 172, 0.35); }
         .legend-color-special-holiday { background-color: rgba(253, 186, 116, 0.35); }
         .legend-color-late { background-color: rgba(180, 130, 80, 0.35); }
+
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #d1d5db;
+            padding-top: 12px;
+        }
+
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .footer-table td {
+            width: 33.33%;
+            text-align: center;
+            vertical-align: bottom;
+            padding: 0 10px;
+        }
+
+        .footer-table .line {
+            border-top: 1px solid #111827;
+            padding-top: 6px;
+            font-size: 11px;
+        }
+
+        .footer-table .name {
+            font-size: 11px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
@@ -197,25 +226,27 @@
                 <div class="meta-label">Regular pay</div>
                 <div class="meta-value">PHP {{ number_format((float) $regularAmount, 2) }}</div>
             </td>
-        </tr>
-        <tr>
             <td>
                 <div class="meta-label">Overtime pay</div>
                 <div class="meta-value">PHP {{ number_format((float) $totalOvertimeAmount, 2) }}</div>
             </td>
+        </tr>
+        <tr>
             <td>
                 <div class="meta-label">SSS deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP
-                    {{ number_format((float) ($sssDeduction ?? 0), 2) }}</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($sssDeduction ?? 0), 2) }}</div>
             </td>
             <td>
                 <div class="meta-label">Pag-IBIG deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP
-                    {{ number_format((float) ($pagibigDeduction ?? 0), 2) }}</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($pagibigDeduction ?? 0), 2) }}</div>
+            </td>
+            <td colspan="2">
+                <div class="meta-label">PhilHealth deduction</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($philhealthEeShare ?? 0), 2) }}</div>
             </td>
         </tr>
         <tr>
-            <td colspan="3">
+            <td colspan="4">
                 <div class="meta-label">Total pay</div>
                 <div class="meta-value">PHP {{ number_format((float) $totalAmount, 2) }}</div>
             </td>
@@ -369,6 +400,25 @@
             @endforeach
         </tbody>
     </table>
+
+    <div class="footer">
+        <table class="footer-table">
+            <tr>
+                <td>
+                    <div class="line">Prepared by</div>
+                    <div class="name">{{ $userName }}</div>
+                </td>
+                <td>
+                    <div class="line">Checked by</div>
+                    <div class="name">{{ $userName }}</div>
+                </td>
+                <td>
+                    <div class="line">Received by</div>
+                    <div class="name">{{ $employeeName }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
 
 </html>

@@ -26,9 +26,32 @@ export const SSS_MAX_CONTRIBUTION = 1750;
 
 export const PAGIBIG_FIXED_RATE = 200;
 
+export const PHILOHEALTH_RATE = 0.025;
+export const PHILOHEALTH_FLOOR_SALARY = 10000;
+export const PHILOHEALTH_CEILING_SALARY = 100000;
+
 /** Returns the fixed Pag-IBIG contribution amount (200). */
 export function pagibigContribution(): number {
     return PAGIBIG_FIXED_RATE;
+}
+
+/** Computes the PhilHealth employee share based on monthly salary (2.5% of salary, clamped between 10000 and 100000). */
+export function philhealthEeShare(monthlyRate: number | string | null): number {
+    const salary =
+        typeof monthlyRate === 'number'
+            ? monthlyRate
+            : Number(monthlyRate ?? 0);
+
+    if (!Number.isFinite(salary) || salary === 0) {
+        return 0;
+    }
+
+    const salaryBase = Math.max(
+        PHILOHEALTH_FLOOR_SALARY,
+        Math.min(salary, PHILOHEALTH_CEILING_SALARY),
+    );
+
+    return Math.round(salaryBase * PHILOHEALTH_RATE * 100) / 100;
 }
 
 /** Computes the SSS contribution based on monthly salary brackets. */
@@ -80,6 +103,7 @@ export type ActiveDtr = {
     year: number;
     sssDeduction: string;
     pagibigDeduction: string;
+    philhealthEeShare: string;
     entries: ActiveDtrEntry[];
 };
 

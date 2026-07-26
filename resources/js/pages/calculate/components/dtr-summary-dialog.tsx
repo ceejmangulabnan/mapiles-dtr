@@ -18,6 +18,9 @@ import {
 } from '@/components/ui/tooltip';
 import {
     PAGIBIG_FIXED_RATE,
+    PHILOHEALTH_FLOOR_SALARY,
+    PHILOHEALTH_CEILING_SALARY,
+    PHILOHEALTH_RATE,
     SSS_BASE_SALARY,
     SSS_BASE_CONTRIBUTION,
     SSS_INCREMENT_STEP,
@@ -27,6 +30,7 @@ import {
     formatRateAmount,
     getAttendanceCalendarRangeLabel,
     pagibigContribution,
+    philhealthEeShare,
     sssContribution
     
 } from '../helpers/calculate-page';
@@ -43,6 +47,8 @@ type DtrSummaryDialogProps = {
     onSssOverrideChange: (value: string) => void;
     pagibigOverride: string;
     onPagibigOverrideChange: (value: string) => void;
+    philhealthOverride: string;
+    onPhilhealthOverrideChange: (value: string) => void;
     monthlyRate: string;
     calendarRange: AttendanceCalendarRange;
 };
@@ -57,6 +63,8 @@ export default function DtrSummaryDialog({
     onSssOverrideChange,
     pagibigOverride,
     onPagibigOverrideChange,
+    philhealthOverride,
+    onPhilhealthOverrideChange,
     monthlyRate,
     calendarRange,
 }: DtrSummaryDialogProps) {
@@ -104,6 +112,37 @@ export default function DtrSummaryDialog({
 
         if (isSemiMonthly) {
             return `${formula} Divided by 2 for ${rangeLabel} period: ${formatRateAmount(summary.sssContribution)}.`;
+        }
+
+        return formula;
+    }
+
+    function philhealthFormulaBreakdown(): string {
+        const salary = Number(monthlyRate);
+
+        if (!Number.isFinite(salary) || salary === 0) {
+            return 'No monthly rate set for this employee.';
+        }
+
+        const isSemiMonthly = calendarRange !== 'wholeMonth';
+        const rangeLabel = isSemiMonthly
+            ? getAttendanceCalendarRangeLabel(calendarRange)
+            : '';
+
+        const salaryBase = Math.max(PHILOHEALTH_FLOOR_SALARY, Math.min(salary, PHILOHEALTH_CEILING_SALARY));
+        const total = philhealthEeShare(monthlyRate);
+        let formula: string;
+
+        if (salary < PHILOHEALTH_FLOOR_SALARY) {
+            formula = `Monthly Rate: ${formatRateAmount(salary)}. Below floor ₱${PHILOHEALTH_FLOOR_SALARY.toLocaleString()}, salary base is set to ${formatRateAmount(PHILOHEALTH_FLOOR_SALARY)}. ${formatRateAmount(PHILOHEALTH_FLOOR_SALARY)} × ${PHILOHEALTH_RATE * 100}% = ${formatRateAmount(total)}.`;
+        } else if (salary > PHILOHEALTH_CEILING_SALARY) {
+            formula = `Monthly Rate: ${formatRateAmount(salary)}. Above ceiling ₱${PHILOHEALTH_CEILING_SALARY.toLocaleString()}, salary base is capped at ${formatRateAmount(PHILOHEALTH_CEILING_SALARY)}. ${formatRateAmount(PHILOHEALTH_CEILING_SALARY)} × ${PHILOHEALTH_RATE * 100}% = ${formatRateAmount(total)}.`;
+        } else {
+            formula = `Monthly Rate: ${formatRateAmount(salary)}. Salary base: ${formatRateAmount(salaryBase)}. ${formatRateAmount(salaryBase)} × ${PHILOHEALTH_RATE * 100}% = ${formatRateAmount(total)}.`;
+        }
+
+        if (isSemiMonthly) {
+            return `${formula} Divided by 2 for ${rangeLabel} period: ${formatRateAmount(summary.philhealthContribution)}.`;
         }
 
         return formula;
@@ -362,6 +401,102 @@ export default function DtrSummaryDialog({
                         </div>
                     </div>
 
+                    <p className="mt-4 text-sm font-semibold text-foreground">
+                        PhilHealth deduction
+                    </p>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-4">
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Monthly rate
+                            </p>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {hasMonthlyRate
+                                    ? formatRateAmount(monthlyRate)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs text-muted-foreground">
+                                    Auto-computed PhilHealth
+                                </p>
+                                {hasMonthlyRate && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 shrink-0"
+                                            >
+                                                <Info className="h-3 w-3" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                            side="bottom"
+                                            align="start"
+                                            className="max-w-xs text-xs"
+                                        >
+                                            {philhealthFormulaBreakdown()}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {hasMonthlyRate
+                                    ? formatRateAmount(summary.philhealthContribution)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Override (optional)
+                            </p>
+                            <div className="mt-0.5">
+                                <Input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={philhealthOverride}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+
+                                        if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
+                                            onPhilhealthOverrideChange(val);
+                                        }
+                                    }}
+                                    className="h-8 w-full max-w-36 text-sm"
+                                    placeholder={
+                                        hasMonthlyRate
+                                            ? `Auto: ${summary.philhealthDeductionLabel}`
+                                            : '0.00'
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Effective deduction
+                            </p>
+                            <p className="mt-0.5 font-semibold text-foreground">
+                                {summary.philhealthDeductionLabel}
+                            </p>
+                            {philhealthOverride.trim() !== '' && (
+                                <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                                    Auto: {formatRateAmount(summary.philhealthContribution)}
+                                    {Number(philhealthOverride) > summary.philhealthContribution
+                                        ? ' (higher)'
+                                        : Number(philhealthOverride) < summary.philhealthContribution && Number(philhealthOverride) >= 0
+                                            ? ' (lower)'
+                                            : ''}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="mt-3 rounded-lg border bg-primary/5 p-3">
                         <div className="flex items-baseline justify-between gap-4">
                             <div>
@@ -373,7 +508,7 @@ export default function DtrSummaryDialog({
                                 </p>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                {summary.totalAmountLabel} − {summary.sssDeductionLabel} SSS − {summary.pagibigDeductionLabel} Pag-IBIG
+                                {summary.totalAmountLabel} − {summary.sssDeductionLabel} SSS − {summary.pagibigDeductionLabel} Pag-IBIG − {summary.philhealthDeductionLabel} PhilHealth
                             </p>
                         </div>
                     </div>
