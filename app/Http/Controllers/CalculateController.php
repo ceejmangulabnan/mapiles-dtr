@@ -6,6 +6,7 @@ use App\Http\Requests\StoreDtrRequest;
 use App\Models\Dtr;
 use App\Models\DtrEntry;
 use App\Models\Employee;
+use App\Services\Audit\AuditLogger;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -137,165 +138,181 @@ class CalculateController extends Controller
             ? (float) $validated['pagibig_deduction']
             : 0.0;
 
-        DB::transaction(function () use ($calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $validated, $year): void {
-            Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+        $isExisting = $this->dtrQueryForPeriod($employee->id, $month, $year)->exists();
 
-            $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
-            [$periodStartDate, $periodEndDate] = $this->periodBounds($month, $year);
-            [$rangeStartDate, $rangeEndDate] = $this->calendarRangeBounds(
-                $month,
-                $year,
-                $calendarRange,
-            );
+        $auditLogger = app(AuditLogger::class);
+        $savedDtr = null;
 
-            $preparedEntries = collect($validated['entries'])
-                ->sortBy('date')
-                ->values()
-                ->map(function (array $entry) use ($employee, $scheduleByDay): array {
-                    $isAbsent = filter_var(
-                        $entry['is_absent'] ?? false,
-                        FILTER_VALIDATE_BOOLEAN,
-                    );
-                    $isAbsentOnRegularHoliday = $isAbsent && (string) $entry['holiday_type'] === 'regularHoliday';
-                    $workDate = Carbon::parse($entry['date']);
-                    $scheduleDay = $scheduleByDay->get((int) $workDate->dayOfWeek);
-                    $baseRate = $isAbsent && ! $isAbsentOnRegularHoliday
-                        ? $this->formatRate(0)
-                        : $this->resolvedEntryBaseRate($employee, $entry['base_rate'] ?? null);
-                    $holidayType = $isAbsent && ! $isAbsentOnRegularHoliday
-                        ? 'none'
-                        : (string) $entry['holiday_type'];
-                    $workedMinutes = $isAbsent
-                        ? 0
-                        : $this->resolveWorkedMinutes(
-                            $entry['time_in'] ?? null,
-                            $entry['time_out'] ?? null,
+        DB::transaction(function () use (&$savedDtr, $auditLogger, $calendarRange, $employee, $isExisting, $month, $request, $sssDeduction, $pagibigDeduction, $validated, $year): void {
+            AuditLogger::disabled(function () use (&$savedDtr, $calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $validated, $year): void {
+                Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+
+                $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
+                [$periodStartDate, $periodEndDate] = $this->periodBounds($month, $year);
+                [$rangeStartDate, $rangeEndDate] = $this->calendarRangeBounds(
+                    $month,
+                    $year,
+                    $calendarRange,
+                );
+
+                $preparedEntries = collect($validated['entries'])
+                    ->sortBy('date')
+                    ->values()
+                    ->map(function (array $entry) use ($employee, $scheduleByDay): array {
+                        $isAbsent = filter_var(
+                            $entry['is_absent'] ?? false,
+                            FILTER_VALIDATE_BOOLEAN,
                         );
-                    $scheduledWorkedMinutes = $isAbsent
-                        ? 0
-                        : $this->resolveWorkedMinutes(
-                            $scheduleDay['startTime'] ?? null,
-                            $scheduleDay['endTime'] ?? null,
-                        );
-
-                    return [
-                        'work_date' => $entry['date'],
-                        'time_in' => $isAbsent
-                            ? null
-                            : $this->normalizeEntryTime($entry['time_in'] ?? null),
-                        'time_out' => $isAbsent
-                            ? null
-                            : $this->normalizeEntryTime($entry['time_out'] ?? null),
-                        'holiday_type' => $holidayType,
-                        'worked_minutes' => $workedMinutes,
-                        'base_rate' => $isAbsent && ! $isAbsentOnRegularHoliday
+                        $isAbsentOnRegularHoliday = $isAbsent && (string) $entry['holiday_type'] === 'regularHoliday';
+                        $workDate = Carbon::parse($entry['date']);
+                        $scheduleDay = $scheduleByDay->get((int) $workDate->dayOfWeek);
+                        $baseRate = $isAbsent && ! $isAbsentOnRegularHoliday
                             ? $this->formatRate(0)
-                            : $baseRate,
-                        'rate' => $isAbsentOnRegularHoliday
-                            ? $baseRate
-                            : ($isAbsent
-                                ? $this->formatRate(0)
-                                : $this->computedEntryRate(
-                                    $baseRate,
-                                    $holidayType,
-                                    $entry['time_in'] ?? null,
-                                    $entry['time_out'] ?? null,
-                                    $scheduleDay['startTime'] ?? null,
-                                    (int) ($scheduleDay['graceMinutes'] ?? 0),
-                                )),
-                        'overtime_minutes' => $isAbsent
+                            : $this->resolvedEntryBaseRate($employee, $entry['base_rate'] ?? null);
+                        $holidayType = $isAbsent && ! $isAbsentOnRegularHoliday
+                            ? 'none'
+                            : (string) $entry['holiday_type'];
+                        $workedMinutes = $isAbsent
                             ? 0
-                            : max(0, $workedMinutes - $scheduledWorkedMinutes),
-                    ];
-                });
+                            : $this->resolveWorkedMinutes(
+                                $entry['time_in'] ?? null,
+                                $entry['time_out'] ?? null,
+                            );
+                        $scheduledWorkedMinutes = $isAbsent
+                            ? 0
+                            : $this->resolveWorkedMinutes(
+                                $scheduleDay['startTime'] ?? null,
+                                $scheduleDay['endTime'] ?? null,
+                            );
 
-            $dtr = $this->dtrQueryForPeriod($employee->id, $month, $year)
-                ->lockForUpdate()
-                ->first();
+                        return [
+                            'work_date' => $entry['date'],
+                            'time_in' => $isAbsent
+                                ? null
+                                : $this->normalizeEntryTime($entry['time_in'] ?? null),
+                            'time_out' => $isAbsent
+                                ? null
+                                : $this->normalizeEntryTime($entry['time_out'] ?? null),
+                            'holiday_type' => $holidayType,
+                            'worked_minutes' => $workedMinutes,
+                            'base_rate' => $isAbsent && ! $isAbsentOnRegularHoliday
+                                ? $this->formatRate(0)
+                                : $baseRate,
+                            'rate' => $isAbsentOnRegularHoliday
+                                ? $baseRate
+                                : ($isAbsent
+                                    ? $this->formatRate(0)
+                                    : $this->computedEntryRate(
+                                        $baseRate,
+                                        $holidayType,
+                                        $entry['time_in'] ?? null,
+                                        $entry['time_out'] ?? null,
+                                        $scheduleDay['startTime'] ?? null,
+                                        (int) ($scheduleDay['graceMinutes'] ?? 0),
+                                    )),
+                            'overtime_minutes' => $isAbsent
+                                ? 0
+                                : max(0, $workedMinutes - $scheduledWorkedMinutes),
+                        ];
+                    });
 
-            if (! $dtr) {
-                $dtr = Dtr::query()->create([
-                    'employee_id' => $employee->id,
-                    'confirmed_by' => $request->user()?->id,
-                    'created_by' => $request->user()?->id,
-                    'updated_by' => $request->user()?->id,
-                    'total_days' => 0,
-                    'total_worked_minutes' => 0,
-                    'total_overtime_minutes' => 0,
-                    'total_overtime_amount' => $this->formatRate(0),
-                    'total_amount' => $this->formatRate(0),
-                ]);
-            }
+                $dtr = $this->dtrQueryForPeriod($employee->id, $month, $year)
+                    ->lockForUpdate()
+                    ->first();
 
-            $preservedEntryTotals = $dtr->entries()
-                ->whereBetween('work_date', [
-                    $periodStartDate->toDateString(),
-                    $periodEndDate->toDateString(),
-                ])
-                ->where(function (Builder $query) use ($rangeEndDate, $rangeStartDate): void {
-                    $query->whereDate('work_date', '<', $rangeStartDate->toDateString())
-                        ->orWhereDate('work_date', '>', $rangeEndDate->toDateString());
-                })
-                ->orderBy('work_date')
-                ->get()
-                ->map(
-                    fn (DtrEntry $entry): array => $this->entryTotalsPayload(
-                        $entry,
-                        $scheduleByDay,
-                    ),
-                )
-                ->values();
+                if (! $dtr) {
+                    $dtr = Dtr::query()->create([
+                        'employee_id' => $employee->id,
+                        'confirmed_by' => $request->user()?->id,
+                        'created_by' => $request->user()?->id,
+                        'updated_by' => $request->user()?->id,
+                        'total_days' => 0,
+                        'total_worked_minutes' => 0,
+                        'total_overtime_minutes' => 0,
+                        'total_overtime_amount' => $this->formatRate(0),
+                        'total_amount' => $this->formatRate(0),
+                    ]);
+                }
 
-            $dtr->entries()
-                ->whereBetween('work_date', [
-                    $rangeStartDate->toDateString(),
-                    $rangeEndDate->toDateString(),
-                ])
-                ->delete();
-
-            $dtr->entries()->createMany(
-                $preparedEntries
+                $preservedEntryTotals = $dtr->entries()
+                    ->whereBetween('work_date', [
+                        $periodStartDate->toDateString(),
+                        $periodEndDate->toDateString(),
+                    ])
+                    ->where(function (Builder $query) use ($rangeEndDate, $rangeStartDate): void {
+                        $query->whereDate('work_date', '<', $rangeStartDate->toDateString())
+                            ->orWhereDate('work_date', '>', $rangeEndDate->toDateString());
+                    })
+                    ->orderBy('work_date')
+                    ->get()
                     ->map(
-                        fn (array $entry): array => collect($entry)
-                            ->except('overtime_minutes')
-                            ->all(),
+                        fn (DtrEntry $entry): array => $this->entryTotalsPayload(
+                            $entry,
+                            $scheduleByDay,
+                        ),
                     )
-                    ->all(),
-            );
+                    ->values();
 
-            $allEntryTotals = $preservedEntryTotals
-                ->concat(
-                    $preparedEntries->map(fn (array $entry): array => [
-                        'worked_minutes' => (int) $entry['worked_minutes'],
-                        'rate' => $entry['rate'],
-                        'overtime_minutes' => (int) $entry['overtime_minutes'],
-                    ]),
-                )
-                ->values();
+                $dtr->entries()
+                    ->whereBetween('work_date', [
+                        $rangeStartDate->toDateString(),
+                        $rangeEndDate->toDateString(),
+                    ])
+                    ->delete();
 
-            $regularAmount = (float) $allEntryTotals->sum(
-                fn (array $entry): float => (float) ($entry['rate'] ?? 0),
-            );
-            $totalOvertimeMinutes = (int) $allEntryTotals->sum('overtime_minutes');
-            $totalOvertimeAmount = $this->computedOvertimeAmount(
-                $employee,
-                $totalOvertimeMinutes,
-            );
+                $dtr->entries()->createMany(
+                    $preparedEntries
+                        ->map(
+                            fn (array $entry): array => collect($entry)
+                                ->except('overtime_minutes')
+                                ->all(),
+                        )
+                        ->all(),
+                );
 
-            $dtr->fill([
-                'confirmed_by' => $request->user()?->id,
-                'updated_by' => $request->user()?->id,
-                'total_days' => $allEntryTotals->count(),
-                'total_worked_minutes' => (int) $allEntryTotals->sum('worked_minutes'),
-                'total_overtime_minutes' => $totalOvertimeMinutes,
-                'total_overtime_amount' => $this->formatRate($totalOvertimeAmount),
-                'sss_deduction' => $this->formatRate($sssDeduction),
-                'pagibig_deduction' => $this->formatRate($pagibigDeduction),
-                'total_amount' => $this->formatRate(
-                    max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction),
-                ),
+                $allEntryTotals = $preservedEntryTotals
+                    ->concat(
+                        $preparedEntries->map(fn (array $entry): array => [
+                            'worked_minutes' => (int) $entry['worked_minutes'],
+                            'rate' => $entry['rate'],
+                            'overtime_minutes' => (int) $entry['overtime_minutes'],
+                        ]),
+                    )
+                    ->values();
+
+                $regularAmount = (float) $allEntryTotals->sum(
+                    fn (array $entry): float => (float) ($entry['rate'] ?? 0),
+                );
+                $totalOvertimeMinutes = (int) $allEntryTotals->sum('overtime_minutes');
+                $totalOvertimeAmount = $this->computedOvertimeAmount(
+                    $employee,
+                    $totalOvertimeMinutes,
+                );
+
+                $dtr->fill([
+                    'confirmed_by' => $request->user()?->id,
+                    'updated_by' => $request->user()?->id,
+                    'total_days' => $allEntryTotals->count(),
+                    'total_worked_minutes' => (int) $allEntryTotals->sum('worked_minutes'),
+                    'total_overtime_minutes' => $totalOvertimeMinutes,
+                    'total_overtime_amount' => $this->formatRate($totalOvertimeAmount),
+                    'sss_deduction' => $this->formatRate($sssDeduction),
+                    'pagibig_deduction' => $this->formatRate($pagibigDeduction),
+                    'total_amount' => $this->formatRate(
+                        max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction),
+                    ),
+                ]);
+                $dtr->save();
+                $savedDtr = $dtr;
+            });
+
+            $action = $isExisting ? 'updated-dtr' : 'created-dtr';
+            $auditLogger->log($action, $savedDtr, null, [
+                'employee_id' => $employee->id,
+                'month' => $month,
+                'year' => $year,
+                'calendar_range' => $calendarRange,
             ]);
-            $dtr->save();
         });
 
         $redirectQuery = [

@@ -15,6 +15,7 @@ use Inertia\Response;
 class UserController extends Controller
 {
     public function __construct(protected AuditLogger $auditLogger) {}
+
     public function index(): Response
     {
         $users = User::query()
@@ -31,7 +32,7 @@ class UserController extends Controller
                     'id' => $user->employee->id,
                     'first_name' => $user->employee->first_name,
                     'last_name' => $user->employee->last_name,
-                    'full_name' => trim($user->employee->first_name . ' ' . $user->employee->last_name),
+                    'full_name' => trim($user->employee->first_name.' '.$user->employee->last_name),
                 ] : null,
             ]);
 
@@ -43,7 +44,7 @@ class UserController extends Controller
                 'id' => $employee->id,
                 'first_name' => $employee->first_name,
                 'last_name' => $employee->last_name,
-                'full_name' => trim($employee->first_name . ' ' . $employee->last_name),
+                'full_name' => trim($employee->first_name.' '.$employee->last_name),
             ]);
 
         return Inertia::render('users/index', [
@@ -104,7 +105,7 @@ class UserController extends Controller
             'user_id' => $user->id,
             'user_name' => $user->name,
             'employee_id' => $employee->id,
-            'employee_name' => trim($employee->first_name . ' ' . $employee->last_name),
+            'employee_name' => trim($employee->first_name.' '.$employee->last_name),
         ]);
 
         return to_route('users.index')->with('success', 'Employee linked successfully.');
@@ -117,7 +118,7 @@ class UserController extends Controller
         }
 
         if ($user->employee) {
-            $employeeName = trim($user->employee->first_name . ' ' . $user->employee->last_name);
+            $employeeName = trim($user->employee->first_name.' '.$user->employee->last_name);
             $employeeId = $user->employee->id;
             $user->employee->update(['user_id' => null]);
 
