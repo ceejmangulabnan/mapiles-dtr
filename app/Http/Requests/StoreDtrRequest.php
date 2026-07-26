@@ -34,6 +34,7 @@ class StoreDtrRequest extends FormRequest
             'entries.*.is_absent' => ['sometimes', 'boolean'],
             'sss_deduction' => ['nullable', 'numeric', 'min:0'],
             'pagibig_deduction' => ['nullable', 'numeric', 'min:0'],
+            'philhealth_ee_share' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

@@ -42,6 +42,21 @@ class CalculateController extends Controller
 
     private const PAGIBIG_FIXED_RATE = 200;
 
+    private const PHILOHEALTH_RATE = 0.025;
+
+    private const PHILOHEALTH_FLOOR_SALARY = 10000;
+
+    private const PHILOHEALTH_CEILING_SALARY = 100000;
+
+    public static function philhealthEeShare(float|string|null $monthlyRate): float
+    {
+        $salary = is_numeric($monthlyRate) ? (float) $monthlyRate : 0;
+
+        $salaryBase = max(self::PHILOHEALTH_FLOOR_SALARY, min($salary, self::PHILOHEALTH_CEILING_SALARY));
+
+        return (float) round($salaryBase * self::PHILOHEALTH_RATE, 2);
+    }
+
     public static function pagibigContribution(): float
     {
         return (float) self::PAGIBIG_FIXED_RATE;
@@ -138,13 +153,17 @@ class CalculateController extends Controller
             ? (float) $validated['pagibig_deduction']
             : 0.0;
 
+        $philhealthEeShare = is_numeric($validated['philhealth_ee_share'] ?? null)
+            ? (float) $validated['philhealth_ee_share']
+            : 0.0;
+
         $isExisting = $this->dtrQueryForPeriod($employee->id, $month, $year)->exists();
 
         $auditLogger = app(AuditLogger::class);
         $savedDtr = null;
 
-        DB::transaction(function () use (&$savedDtr, $auditLogger, $calendarRange, $employee, $isExisting, $month, $request, $sssDeduction, $pagibigDeduction, $validated, $year): void {
-            AuditLogger::disabled(function () use (&$savedDtr, $calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $validated, $year): void {
+        DB::transaction(function () use (&$savedDtr, $auditLogger, $calendarRange, $employee, $isExisting, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $validated, $year): void {
+            AuditLogger::disabled(function () use (&$savedDtr, $calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $validated, $year): void {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
                 $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
@@ -298,8 +317,9 @@ class CalculateController extends Controller
                     'total_overtime_amount' => $this->formatRate($totalOvertimeAmount),
                     'sss_deduction' => $this->formatRate($sssDeduction),
                     'pagibig_deduction' => $this->formatRate($pagibigDeduction),
+                    'philhealth_ee_share' => $this->formatRate($philhealthEeShare),
                     'total_amount' => $this->formatRate(
-                        max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction),
+                        max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction - $philhealthEeShare),
                     ),
                 ]);
                 $dtr->save();
@@ -405,6 +425,9 @@ class CalculateController extends Controller
                 : '',
             'pagibigDeduction' => $dtr->pagibig_deduction !== null
                 ? (string) $dtr->pagibig_deduction
+                : '',
+            'philhealthEeShare' => $dtr->philhealth_ee_share !== null
+                ? (string) $dtr->philhealth_ee_share
                 : '',
             'entries' => $dtr->entries
                 ->map(fn ($entry) => [

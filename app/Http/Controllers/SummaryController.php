@@ -55,6 +55,7 @@ class SummaryController extends Controller
                     'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
                     'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                     'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
+                    'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                     'holidayPremium' => (string) ($dtr->entries->sum(
                         fn ($entry): float => (float) ($entry->rate ?? 0) > (float) ($entry->base_rate ?? 0)
@@ -113,6 +114,7 @@ class SummaryController extends Controller
         );
 
         $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
+        $userName = $request->user()->name;
 
         $entriesData = $dtr->entries->map(function ($entry) use ($scheduleByDay, $hourlyRate): array {
             $workDate = Carbon::parse($entry->work_date);
@@ -196,8 +198,10 @@ class SummaryController extends Controller
             'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
             'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
             'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
+            'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
             'watermarkLabel' => $watermarkLabel,
+            'userName' => $userName,
             'entries' => $entriesData,
         ])->setPaper('a4', 'portrait');
 
@@ -231,6 +235,7 @@ class SummaryController extends Controller
         }
 
         $watermarkLabel = $request->user()->isAdmin() ? "Admin's Copy" : "Management's Copy";
+        $userName = $request->user()->name;
 
         $zip = new ZipArchive;
         $zipPath = tempnam(sys_get_temp_dir(), 'dtr-batch-').'.zip';
@@ -343,8 +348,10 @@ class SummaryController extends Controller
                 'totalOvertimeAmount' => $dtr->total_overtime_amount !== null ? (string) $dtr->total_overtime_amount : '0.00',
                 'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                 'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
+                'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
                 'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                 'watermarkLabel' => $watermarkLabel,
+                'userName' => $userName,
                 'entries' => $entriesData,
             ])->setPaper('a4', 'portrait');
 

@@ -29,6 +29,7 @@ export type SummaryDtr = {
     totalOvertimeAmount: string;
     sssDeduction: string;
     pagibigDeduction: string;
+    philhealthEeShare: string;
     totalAmount: string;
     holidayPremium: string;
     confirmedAt: string | null;
