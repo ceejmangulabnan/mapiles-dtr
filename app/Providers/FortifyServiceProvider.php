@@ -62,6 +62,8 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             if ($user->isEmployee() && ! $user->employee()->exists()) {
+                $request->session()->flash('unlinked_account', true);
+
                 return null;
             }
 
@@ -89,6 +91,7 @@ class FortifyServiceProvider extends ServiceProvider
                 'canResetPassword' => Features::enabled(Features::resetPasswords()),
                 // 'canRegister' => Features::enabled(Features::registration()),
                 'status' => $request->session()->get('status'),
+                'unlinkedAccount' => $request->session()->get('unlinked_account', false),
             ]);
         });
 

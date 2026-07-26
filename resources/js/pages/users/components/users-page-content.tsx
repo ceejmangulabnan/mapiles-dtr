@@ -228,7 +228,7 @@ export default function UsersPageContent({
                                                                             <SelectTrigger className="h-8 w-48">
                                                                                 <SelectValue placeholder="Link employee..." />
                                                                             </SelectTrigger>
-                                                                            <SelectContent>
+                                                                            <SelectContent position="popper" className="max-h-64">
                                                                                 {unlinkedEmployees.length === 0 ? (
                                                                                     <SelectItem value="none" disabled>
                                                                                         No unlinked employees

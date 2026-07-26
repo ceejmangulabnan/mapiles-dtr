@@ -15,15 +15,23 @@ type Props = {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    unlinkedAccount?: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status, canResetPassword, unlinkedAccount }: Props) {
     return (
         <AuthLayout
             title="Log in to your account"
             description="Enter your email and password below to log in"
         >
             <Head title="Log in" />
+
+            {unlinkedAccount && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                    Your account is not yet linked to an employee record. Please
+                    contact your administrator to update your account.
+                </div>
+            )}
 
             <Form
                 {...store.form()}
@@ -45,7 +53,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError message={unlinkedAccount ? undefined : errors.email} />
                             </div>
 
                             <div className="grid gap-2">
