@@ -168,11 +168,6 @@ class CalculateController extends Controller
 
                 $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
                 [$periodStartDate, $periodEndDate] = $this->periodBounds($month, $year);
-                [$rangeStartDate, $rangeEndDate] = $this->calendarRangeBounds(
-                    $month,
-                    $year,
-                    $calendarRange,
-                );
 
                 $preparedEntries = collect($validated['entries'])
                     ->sortBy('date')
@@ -253,29 +248,10 @@ class CalculateController extends Controller
                     ]);
                 }
 
-                $preservedEntryTotals = $dtr->entries()
+                $dtr->entries()
                     ->whereBetween('work_date', [
                         $periodStartDate->toDateString(),
                         $periodEndDate->toDateString(),
-                    ])
-                    ->where(function (Builder $query) use ($rangeEndDate, $rangeStartDate): void {
-                        $query->whereDate('work_date', '<', $rangeStartDate->toDateString())
-                            ->orWhereDate('work_date', '>', $rangeEndDate->toDateString());
-                    })
-                    ->orderBy('work_date')
-                    ->get()
-                    ->map(
-                        fn (DtrEntry $entry): array => $this->entryTotalsPayload(
-                            $entry,
-                            $scheduleByDay,
-                        ),
-                    )
-                    ->values();
-
-                $dtr->entries()
-                    ->whereBetween('work_date', [
-                        $rangeStartDate->toDateString(),
-                        $rangeEndDate->toDateString(),
                     ])
                     ->delete();
 
@@ -289,14 +265,11 @@ class CalculateController extends Controller
                         ->all(),
                 );
 
-                $allEntryTotals = $preservedEntryTotals
-                    ->concat(
-                        $preparedEntries->map(fn (array $entry): array => [
-                            'worked_minutes' => (int) $entry['worked_minutes'],
-                            'rate' => $entry['rate'],
-                            'overtime_minutes' => (int) $entry['overtime_minutes'],
-                        ]),
-                    )
+                $allEntryTotals = $preparedEntries->map(fn (array $entry): array => [
+                        'worked_minutes' => (int) $entry['worked_minutes'],
+                        'rate' => $entry['rate'],
+                        'overtime_minutes' => (int) $entry['overtime_minutes'],
+                    ])
                     ->values();
 
                 $regularAmount = (float) $allEntryTotals->sum(
@@ -346,7 +319,8 @@ class CalculateController extends Controller
         }
 
         if ($request->input('source') === 'summary') {
-            $redirectQuery['source'] = 'summary';
+            return to_route('summary.index')
+                ->with('success', 'DTR confirmed and saved successfully.');
         }
 
         return to_route('calculate.index', $redirectQuery)
