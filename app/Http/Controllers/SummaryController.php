@@ -92,6 +92,10 @@ class SummaryController extends Controller
 
         $dtr->load(['employee', 'entries' => fn ($query) => $query->orderBy('work_date')]);
 
+        $firstEntry = $dtr->entries->first();
+        $lastEntry = $dtr->entries->last();
+        $periodLabel = $this->resolvedPeriodLabel($firstEntry?->work_date, $lastEntry?->work_date);
+
         $periodDate = $this->resolvedPeriodDate($dtr);
         $month = (int) $periodDate->month;
         $year = (int) $periodDate->year;
@@ -188,6 +192,7 @@ class SummaryController extends Controller
 
         $pdf = Pdf::loadView('pdf.dtr-summary', [
             'employeeName' => $employeeName,
+            'periodLabel' => $periodLabel,
             'monthLabel' => $monthLabel,
             'year' => $year,
             'totalDays' => $dtr->total_days,
@@ -251,6 +256,9 @@ class SummaryController extends Controller
             $month = (int) $periodDate->month;
             $year = (int) $periodDate->year;
             $monthLabel = $periodDate->format('F');
+            $firstEntry = $dtr->entries->first();
+            $lastEntry = $dtr->entries->last();
+            $periodLabel = $this->resolvedPeriodLabel($firstEntry?->work_date, $lastEntry?->work_date);
             $employeeName = $dtr->employee?->first_name !== null
                 ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
                 : 'Unknown employee';
@@ -339,6 +347,7 @@ class SummaryController extends Controller
 
             $pdf = Pdf::loadView('pdf.dtr-summary', [
                 'employeeName' => $employeeName,
+                'periodLabel' => $periodLabel,
                 'monthLabel' => $monthLabel,
                 'year' => $year,
                 'totalDays' => $dtr->total_days,
@@ -560,5 +569,27 @@ class SummaryController extends Controller
         }
 
         return $hours * 60 + $minutes;
+    }
+
+    protected function resolvedPeriodLabel(?string $firstDate, ?string $lastDate): string
+    {
+        if ($firstDate === null || $lastDate === null) {
+            return '';
+        }
+
+        $start = Carbon::parse($firstDate);
+        $end = Carbon::parse($lastDate);
+
+        $monthLabel = $start->format('F');
+        $year = $start->format('Y');
+
+        if ($start->isSameDay($end)) {
+            return "{$monthLabel} {$start->format('j')}, {$year}";
+        }
+
+        $startDay = $start->format('j');
+        $endDay = $end->format('j');
+
+        return "{$monthLabel} {$startDay}-{$endDay}, {$year}";
     }
 }

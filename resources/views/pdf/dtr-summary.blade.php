@@ -219,7 +219,7 @@
         <div class="header-left">
             <h1>DTR Summary</h1>
             <p><strong>Employee:</strong> {{ $employeeName }}</p>
-            <p><strong>Period:</strong> {{ $monthLabel }} {{ $year }}</p>
+            <p><strong>Period:</strong> {{ $periodLabel }}</p>
             @if ($confirmedAt)
                 <p><strong>Confirmed at:</strong> {{ $confirmedAt }}</p>
             @endif
