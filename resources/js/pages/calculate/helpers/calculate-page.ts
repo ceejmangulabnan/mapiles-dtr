@@ -13,6 +13,7 @@ export type EmployeeOption = {
     fullName: string;
     dailyRate: string;
     monthlyRate: string;
+    cashAdvanceDeduction: string;
     workDays: number[];
     schedule: EmployeeScheduleDay[];
 };
@@ -104,6 +105,7 @@ export type ActiveDtr = {
     sssDeduction: string;
     pagibigDeduction: string;
     philhealthEeShare: string;
+    cashAdvanceDeduction: string;
     entries: ActiveDtrEntry[];
 };
 

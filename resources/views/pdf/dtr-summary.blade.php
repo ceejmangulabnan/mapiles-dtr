@@ -158,12 +158,29 @@
             vertical-align: middle;
         }
 
-        .legend-color-absent { background-color: rgba(252, 165, 165, 0.35); }
-        .legend-color-overtime { background-color: rgba(253, 224, 71, 0.35); }
-        .legend-color-halfday { background-color: rgba(147, 197, 253, 0.35); }
-        .legend-color-regular-holiday { background-color: rgba(134, 239, 172, 0.35); }
-        .legend-color-special-holiday { background-color: rgba(253, 186, 116, 0.35); }
-        .legend-color-late { background-color: rgba(180, 130, 80, 0.35); }
+        .legend-color-absent {
+            background-color: rgba(252, 165, 165, 0.35);
+        }
+
+        .legend-color-overtime {
+            background-color: rgba(253, 224, 71, 0.35);
+        }
+
+        .legend-color-halfday {
+            background-color: rgba(147, 197, 253, 0.35);
+        }
+
+        .legend-color-regular-holiday {
+            background-color: rgba(134, 239, 172, 0.35);
+        }
+
+        .legend-color-special-holiday {
+            background-color: rgba(253, 186, 116, 0.35);
+        }
+
+        .legend-color-late {
+            background-color: rgba(180, 130, 80, 0.35);
+        }
 
         .footer {
             margin-top: 40px;
@@ -234,15 +251,23 @@
         <tr>
             <td>
                 <div class="meta-label">SSS deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($sssDeduction ?? 0), 2) }}</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP
+                    {{ number_format((float) ($sssDeduction ?? 0), 2) }}</div>
             </td>
             <td>
                 <div class="meta-label">Pag-IBIG deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($pagibigDeduction ?? 0), 2) }}</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP
+                    {{ number_format((float) ($pagibigDeduction ?? 0), 2) }}</div>
             </td>
-            <td colspan="2">
+            <td>
                 <div class="meta-label">PhilHealth deduction</div>
-                <div class="meta-value" style="color:#dc2626;">-PHP {{ number_format((float) ($philhealthEeShare ?? 0), 2) }}</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP
+                    {{ number_format((float) ($philhealthEeShare ?? 0), 2) }}</div>
+            </td>
+            <td>
+                <div class="meta-label">Cash advance deduction</div>
+                <div class="meta-value" style="color:#dc2626;">-PHP
+                    {{ number_format((float) ($cashAdvanceDeduction ?? 0), 2) }}</div>
             </td>
         </tr>
         <tr>

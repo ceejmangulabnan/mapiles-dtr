@@ -56,6 +56,7 @@ class SummaryController extends Controller
                     'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                     'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                     'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+                    'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                     'holidayPremium' => (string) ($dtr->entries->sum(
                         fn ($entry): float => (float) ($entry->rate ?? 0) > (float) ($entry->base_rate ?? 0)
@@ -199,6 +200,7 @@ class SummaryController extends Controller
             'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
             'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
             'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+            'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
             'watermarkLabel' => $watermarkLabel,
             'userName' => $userName,
@@ -349,6 +351,7 @@ class SummaryController extends Controller
                 'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                 'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                 'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+                'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
                 'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                 'watermarkLabel' => $watermarkLabel,
                 'userName' => $userName,

@@ -35,6 +35,7 @@ class StoreDtrRequest extends FormRequest
             'sss_deduction' => ['nullable', 'numeric', 'min:0'],
             'pagibig_deduction' => ['nullable', 'numeric', 'min:0'],
             'philhealth_ee_share' => ['nullable', 'numeric', 'min:0'],
+            'cash_advance_deduction' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

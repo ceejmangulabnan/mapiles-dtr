@@ -30,6 +30,7 @@ export type SummaryDtr = {
     sssDeduction: string;
     pagibigDeduction: string;
     philhealthEeShare: string;
+    cashAdvanceDeduction: string;
     totalAmount: string;
     holidayPremium: string;
     confirmedAt: string | null;

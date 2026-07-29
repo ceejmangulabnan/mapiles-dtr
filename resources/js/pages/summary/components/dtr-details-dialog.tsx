@@ -165,6 +165,15 @@ export default function DtrDetailsDialog({
 
                     <div className="rounded-lg border p-4">
                         <p className="text-sm text-muted-foreground">
+                            Cash advance deduction
+                        </p>
+                        <p className="mt-1 font-medium text-red-600">
+                            −{formatRateAmount(dtr.cashAdvanceDeduction)}
+                        </p>
+                    </div>
+
+                    <div className="rounded-lg border p-4">
+                        <p className="text-sm text-muted-foreground">
                             Total pay
                         </p>
                         <p className="mt-1 font-medium text-foreground">
