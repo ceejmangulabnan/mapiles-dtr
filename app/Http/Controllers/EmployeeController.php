@@ -141,6 +141,9 @@ class EmployeeController extends Controller
                 'monthlyRate' => $monthlyRate,
                 'dailyRate' => $dailyRate,
                 'hourlyRate' => $hourlyRate,
+                'cashAdvanceDeduction' => $employee->cash_advance_deduction !== null
+                    ? (string) $employee->cash_advance_deduction
+                    : '',
                 'schedule' => [
                     'groups' => $scheduleGroups,
                 ],
@@ -179,6 +182,7 @@ class EmployeeController extends Controller
             'scheduled_start_time' => $primarySchedule['start_time'],
             'scheduled_end_time' => $primarySchedule['end_time'],
             'grace_period_minutes' => self::FIXED_GRACE_PERIOD_MINUTES,
+            'cash_advance_deduction' => $validated['cash_advance_deduction'] ?? null,
             'work_days' => array_column($weeklySchedule, 'day'),
             'weekly_schedule' => $weeklySchedule,
         ]);

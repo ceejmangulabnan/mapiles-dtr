@@ -228,6 +228,9 @@ return;
                                                 Weekly schedule
                                             </th>
                                             <th className="px-4 py-3 font-medium">
+                                                Cash advance
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
                                                 Status
                                             </th>
                                             <Can permission="manage-employees">
@@ -288,6 +291,11 @@ return;
                                                             ),
                                                         )}
                                                     </div>
+                                                </td>
+                                                <td className="px-4 py-4 align-middle text-muted-foreground">
+                                                    {employee.cashAdvanceDeduction
+                                                        ? `PHP ${Number(employee.cashAdvanceDeduction).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                        : '--'}
                                                 </td>
                                                 <td className="px-4 py-4 align-middle">
                                                     <Badge

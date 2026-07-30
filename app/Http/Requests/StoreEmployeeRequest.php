@@ -26,6 +26,7 @@ class StoreEmployeeRequest extends FormRequest
             'schedule_groups.*.days.*' => ['required', 'integer', 'between:0,6', 'distinct'],
             'schedule_groups.*.start_time' => ['required', 'date_format:H:i'],
             'schedule_groups.*.end_time' => ['required', 'date_format:H:i'],
+            'cash_advance_deduction' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

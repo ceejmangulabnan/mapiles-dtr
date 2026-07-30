@@ -148,6 +148,29 @@ export default function EmployeeDialog({ dialog }: EmployeeDialogProps) {
                                 readOnly
                             />
                         </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="cash_advance_deduction">
+                                Cash advance deduction
+                            </Label>
+                            <Input
+                                id="cash_advance_deduction"
+                                type="number"
+                                inputMode="decimal"
+                                min="0"
+                                step="0.01"
+                                value={form.data.cash_advance_deduction}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'cash_advance_deduction',
+                                        event.currentTarget.value,
+                                    )
+                                }
+                                placeholder="0.00"
+                                aria-invalid={!!form.errors.cash_advance_deduction}
+                            />
+                            <InputError message={form.errors.cash_advance_deduction} />
+                        </div>
                     </div>
 
                     <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">

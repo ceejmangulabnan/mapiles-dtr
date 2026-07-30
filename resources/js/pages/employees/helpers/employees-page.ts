@@ -17,6 +17,7 @@ export type EmployeeRow = {
     monthlyRate: string;
     dailyRate: string;
     hourlyRate: string;
+    cashAdvanceDeduction?: string;
     schedule: {
         groups: EmployeeScheduleGroup[];
     };
@@ -42,6 +43,7 @@ export type EmployeeFormData = {
     middle_name: string;
     last_name: string;
     monthly_rate: string;
+    cash_advance_deduction: string;
     schedule_groups: ScheduleGroupForm[];
 };
 
@@ -104,6 +106,7 @@ export const defaultEmployeeFormData = (): EmployeeFormData => ({
     middle_name: '',
     last_name: '',
     monthly_rate: '',
+    cash_advance_deduction: '',
     schedule_groups: [createScheduleGroup([1, 2, 3, 4, 5])],
 });
 
@@ -118,6 +121,7 @@ export const employeeToFormData = (
     middle_name: employee.middleName ?? '',
     last_name: employee.lastName,
     monthly_rate: employee.monthlyRate,
+    cash_advance_deduction: employee.cashAdvanceDeduction ?? '',
     schedule_groups: employee.schedule.groups.map((group) => ({
         days: [...group.days],
         start_time: group.startTime.slice(0, 5),

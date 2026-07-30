@@ -49,6 +49,8 @@ type DtrSummaryDialogProps = {
     onPagibigOverrideChange: (value: string) => void;
     philhealthOverride: string;
     onPhilhealthOverrideChange: (value: string) => void;
+    cashAdvanceOverride: string;
+    onCashAdvanceOverrideChange: (value: string) => void;
     monthlyRate: string;
     calendarRange: AttendanceCalendarRange;
 };
@@ -65,6 +67,8 @@ export default function DtrSummaryDialog({
     onPagibigOverrideChange,
     philhealthOverride,
     onPhilhealthOverrideChange,
+    cashAdvanceOverride,
+    onCashAdvanceOverrideChange,
     monthlyRate,
     calendarRange,
 }: DtrSummaryDialogProps) {
@@ -497,6 +501,75 @@ export default function DtrSummaryDialog({
                         </div>
                     </div>
 
+                    <p className="mt-4 text-sm font-semibold text-foreground">
+                        Cash advance deduction
+                    </p>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-4">
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Configured amount
+                            </p>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {summary.cashAdvanceContribution > 0
+                                    ? formatRateAmount(summary.cashAdvanceContribution)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Auto-computed Cash advance
+                            </p>
+                            <p className="mt-0.5 font-medium text-foreground">
+                                {summary.cashAdvanceContribution > 0
+                                    ? formatRateAmount(summary.cashAdvanceContribution)
+                                    : '--'}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Override (optional)
+                            </p>
+                            <div className="mt-0.5">
+                                <Input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={cashAdvanceOverride}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+
+                                        if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
+                                            onCashAdvanceOverrideChange(val);
+                                        }
+                                    }}
+                                    className="h-8 w-full max-w-36 text-sm"
+                                    placeholder={`Auto: ${summary.cashAdvanceDeductionLabel}`}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground">
+                                Effective deduction
+                            </p>
+                            <p className="mt-0.5 font-semibold text-foreground">
+                                {summary.cashAdvanceDeductionLabel}
+                            </p>
+                            {cashAdvanceOverride.trim() !== '' && (
+                                <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                                    Auto: {formatRateAmount(summary.cashAdvanceContribution)}
+                                    {Number(cashAdvanceOverride) > summary.cashAdvanceContribution
+                                        ? ' (higher)'
+                                        : Number(cashAdvanceOverride) < summary.cashAdvanceContribution && Number(cashAdvanceOverride) >= 0
+                                            ? ' (lower)'
+                                            : ''}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="mt-3 rounded-lg border bg-primary/5 p-3">
                         <div className="flex items-baseline justify-between gap-4">
                             <div>
@@ -508,7 +581,7 @@ export default function DtrSummaryDialog({
                                 </p>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                {summary.totalAmountLabel} − {summary.sssDeductionLabel} SSS − {summary.pagibigDeductionLabel} Pag-IBIG − {summary.philhealthDeductionLabel} PhilHealth
+                                {summary.totalAmountLabel} − {summary.sssDeductionLabel} SSS − {summary.pagibigDeductionLabel} Pag-IBIG − {summary.philhealthDeductionLabel} PhilHealth − {summary.cashAdvanceDeductionLabel} Cash advance
                             </p>
                         </div>
                     </div>

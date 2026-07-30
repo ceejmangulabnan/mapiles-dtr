@@ -64,7 +64,7 @@ export function UserMenuContent({ user }: Props) {
                 </div>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem variant="destructive" asChild>
                 <Link
                     className="block w-full cursor-pointer"
                     href={logout()}

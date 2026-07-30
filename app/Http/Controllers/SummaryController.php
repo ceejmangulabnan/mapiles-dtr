@@ -56,6 +56,7 @@ class SummaryController extends Controller
                     'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                     'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                     'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+                    'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
                     'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                     'holidayPremium' => (string) ($dtr->entries->sum(
                         fn ($entry): float => (float) ($entry->rate ?? 0) > (float) ($entry->base_rate ?? 0)
@@ -90,6 +91,10 @@ class SummaryController extends Controller
         }
 
         $dtr->load(['employee', 'entries' => fn ($query) => $query->orderBy('work_date')]);
+
+        $firstEntry = $dtr->entries->first();
+        $lastEntry = $dtr->entries->last();
+        $periodLabel = $this->resolvedPeriodLabel($firstEntry?->work_date, $lastEntry?->work_date);
 
         $periodDate = $this->resolvedPeriodDate($dtr);
         $month = (int) $periodDate->month;
@@ -187,6 +192,7 @@ class SummaryController extends Controller
 
         $pdf = Pdf::loadView('pdf.dtr-summary', [
             'employeeName' => $employeeName,
+            'periodLabel' => $periodLabel,
             'monthLabel' => $monthLabel,
             'year' => $year,
             'totalDays' => $dtr->total_days,
@@ -199,6 +205,7 @@ class SummaryController extends Controller
             'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
             'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
             'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+            'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
             'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
             'watermarkLabel' => $watermarkLabel,
             'userName' => $userName,
@@ -249,6 +256,9 @@ class SummaryController extends Controller
             $month = (int) $periodDate->month;
             $year = (int) $periodDate->year;
             $monthLabel = $periodDate->format('F');
+            $firstEntry = $dtr->entries->first();
+            $lastEntry = $dtr->entries->last();
+            $periodLabel = $this->resolvedPeriodLabel($firstEntry?->work_date, $lastEntry?->work_date);
             $employeeName = $dtr->employee?->first_name !== null
                 ? collect([$dtr->employee?->first_name, $dtr->employee?->middle_name, $dtr->employee?->last_name])->filter()->implode(' ')
                 : 'Unknown employee';
@@ -337,6 +347,7 @@ class SummaryController extends Controller
 
             $pdf = Pdf::loadView('pdf.dtr-summary', [
                 'employeeName' => $employeeName,
+                'periodLabel' => $periodLabel,
                 'monthLabel' => $monthLabel,
                 'year' => $year,
                 'totalDays' => $dtr->total_days,
@@ -349,6 +360,7 @@ class SummaryController extends Controller
                 'sssDeduction' => $dtr->sss_deduction !== null ? (string) $dtr->sss_deduction : '0.00',
                 'pagibigDeduction' => $dtr->pagibig_deduction !== null ? (string) $dtr->pagibig_deduction : '0.00',
                 'philhealthEeShare' => $dtr->philhealth_ee_share !== null ? (string) $dtr->philhealth_ee_share : '0.00',
+                'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null ? (string) $dtr->cash_advance_deduction : '0.00',
                 'totalAmount' => $dtr->total_amount !== null ? (string) $dtr->total_amount : '0.00',
                 'watermarkLabel' => $watermarkLabel,
                 'userName' => $userName,
@@ -557,5 +569,27 @@ class SummaryController extends Controller
         }
 
         return $hours * 60 + $minutes;
+    }
+
+    protected function resolvedPeriodLabel(?string $firstDate, ?string $lastDate): string
+    {
+        if ($firstDate === null || $lastDate === null) {
+            return '';
+        }
+
+        $start = Carbon::parse($firstDate);
+        $end = Carbon::parse($lastDate);
+
+        $monthLabel = $start->format('F');
+        $year = $start->format('Y');
+
+        if ($start->isSameDay($end)) {
+            return "{$monthLabel} {$start->format('j')}, {$year}";
+        }
+
+        $startDay = $start->format('j');
+        $endDay = $end->format('j');
+
+        return "{$monthLabel} {$startDay}-{$endDay}, {$year}";
     }
 }

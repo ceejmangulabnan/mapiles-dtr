@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'sss_deduction',
     'pagibig_deduction',
     'philhealth_ee_share',
+    'cash_advance_deduction',
     'total_amount',
     'created_by',
     'updated_by',
@@ -41,6 +42,7 @@ class Dtr extends Model
             'sss_deduction' => 'decimal:2',
             'pagibig_deduction' => 'decimal:2',
             'philhealth_ee_share' => 'decimal:2',
+            'cash_advance_deduction' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
     }

@@ -81,6 +81,9 @@ export type DtrSummary = {
     philhealthContribution: number;
     philhealthDeductionLabel: string;
     philhealthDeduction: number;
+    cashAdvanceContribution: number;
+    cashAdvanceDeductionLabel: string;
+    cashAdvanceDeduction: number;
     netPay: number;
     netPayLabel: string;
     totalAmountLabel: string;
@@ -163,6 +166,16 @@ function initialPhilhealthOverride(
     return activeDtr.philhealthEeShare;
 }
 
+function initialCashAdvanceOverride(
+    activeDtr: ActiveDtr | null | undefined,
+): string {
+    if (activeDtr && activeDtr.cashAdvanceDeduction) {
+        return activeDtr.cashAdvanceDeduction;
+    }
+
+    return '';
+}
+
 function getHolidayAdjustmentLabel(holidayType: HolidayType): string {
     switch (holidayType) {
         case 'regularHoliday':
@@ -236,6 +249,9 @@ export function useCalculateAttendance(
     );
     const [manualPhilhealthOverride, setManualPhilhealthOverride] = useState<string>(
         () => initialPhilhealthOverride(activeDtr),
+    );
+    const [manualCashAdvanceOverride, setManualCashAdvanceOverride] = useState<string>(
+        () => initialCashAdvanceOverride(activeDtr),
     );
 
     const selectedEmployee =
@@ -477,8 +493,21 @@ export function useCalculateAttendance(
         ? manualPhilhealth
         : autoPhilhealth;
 
+    const fullMonthlyCashAdvance = Number(selectedEmployee?.cashAdvanceDeduction ?? 0);
+    const autoCashAdvance =
+        selectedCalendarRange !== 'wholeMonth'
+            ? fullMonthlyCashAdvance / 2
+            : fullMonthlyCashAdvance;
+    const manualCashAdvance =
+        manualCashAdvanceOverride.trim() !== ''
+            ? Number(manualCashAdvanceOverride)
+            : NaN;
+    const cashAdvanceDeduction = Number.isFinite(manualCashAdvance)
+        ? manualCashAdvance
+        : autoCashAdvance;
+
     const grossTotal = regularAmountTotal + overtimeSummary.totalAmount;
-    const netPay = Math.max(0, grossTotal - sssDeduction - pagibigDeduction - philhealthDeduction);
+    const netPay = Math.max(0, grossTotal - sssDeduction - pagibigDeduction - philhealthDeduction - cashAdvanceDeduction);
 
     const dtrSummary: DtrSummary = {
         employeeName: selectedEmployee?.fullName ?? '',
@@ -501,6 +530,9 @@ export function useCalculateAttendance(
         philhealthContribution: autoPhilhealth,
         philhealthDeduction,
         philhealthDeductionLabel: formatRateAmount(philhealthDeduction),
+        cashAdvanceContribution: autoCashAdvance,
+        cashAdvanceDeduction,
+        cashAdvanceDeductionLabel: formatRateAmount(cashAdvanceDeduction),
         netPay,
         netPayLabel: formatRateAmount(netPay),
         totalAmountLabel: formatRateAmount(grossTotal),
@@ -740,6 +772,7 @@ export function useCalculateAttendance(
         setManualSssOverride('');
         setManualPagibigOverride('');
         setManualPhilhealthOverride('');
+        setManualCashAdvanceOverride('');
         resetReviewState();
     };
 
@@ -814,6 +847,7 @@ export function useCalculateAttendance(
                 sss_deduction: dtrSummary.sssDeduction,
                 pagibig_deduction: dtrSummary.pagibigDeduction,
                 philhealth_ee_share: dtrSummary.philhealthDeduction,
+                cash_advance_deduction: dtrSummary.cashAdvanceDeduction,
                 ...(isEditingFromSummary ? { source: 'summary' } : {}),
                 entries: summaryEntryData.map((entry) => ({
                     date: entry.key,
@@ -868,6 +902,7 @@ export function useCalculateAttendance(
         isRateComputationDialogOpen: selectedRateComputation !== null,
         isSubmittingDtr,
         isSummaryDialogOpen,
+        manualCashAdvanceOverride,
         manualPagibigOverride,
         manualPhilhealthOverride,
         manualSssOverride,
@@ -884,6 +919,7 @@ export function useCalculateAttendance(
         selectedPeriodLabel,
         selectedRateComputation,
         selectedYear,
+        setManualCashAdvanceOverride,
         setManualPagibigOverride,
         setManualPhilhealthOverride,
         setManualSssOverride,

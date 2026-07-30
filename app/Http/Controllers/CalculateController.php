@@ -108,6 +108,9 @@ class CalculateController extends Controller
                     'monthlyRate' => $employee->monthly_rate !== null
                         ? (string) $employee->monthly_rate
                         : '',
+                    'cashAdvanceDeduction' => $employee->cash_advance_deduction !== null
+                        ? (string) $employee->cash_advance_deduction
+                        : '',
                     'workDays' => collect($schedule)
                         ->pluck('day')
                         ->unique()
@@ -157,13 +160,17 @@ class CalculateController extends Controller
             ? (float) $validated['philhealth_ee_share']
             : 0.0;
 
+        $cashAdvanceDeduction = is_numeric($validated['cash_advance_deduction'] ?? null)
+            ? (float) $validated['cash_advance_deduction']
+            : 0.0;
+
         $isExisting = $this->dtrQueryForPeriod($employee->id, $month, $year)->exists();
 
         $auditLogger = app(AuditLogger::class);
         $savedDtr = null;
 
-        DB::transaction(function () use (&$savedDtr, $auditLogger, $calendarRange, $employee, $isExisting, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $validated, $year): void {
-            AuditLogger::disabled(function () use (&$savedDtr, $calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $validated, $year): void {
+        DB::transaction(function () use (&$savedDtr, $auditLogger, $calendarRange, $employee, $isExisting, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $cashAdvanceDeduction, $validated, $year): void {
+            AuditLogger::disabled(function () use (&$savedDtr, $calendarRange, $employee, $month, $request, $sssDeduction, $pagibigDeduction, $philhealthEeShare, $cashAdvanceDeduction, $validated, $year): void {
                 Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
 
                 $scheduleByDay = collect($this->storedSchedule($employee))->keyBy('day');
@@ -291,8 +298,9 @@ class CalculateController extends Controller
                     'sss_deduction' => $this->formatRate($sssDeduction),
                     'pagibig_deduction' => $this->formatRate($pagibigDeduction),
                     'philhealth_ee_share' => $this->formatRate($philhealthEeShare),
+                    'cash_advance_deduction' => $this->formatRate($cashAdvanceDeduction),
                     'total_amount' => $this->formatRate(
-                        max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction - $philhealthEeShare),
+                        max(0, $regularAmount + $totalOvertimeAmount - $sssDeduction - $pagibigDeduction - $philhealthEeShare - $cashAdvanceDeduction),
                     ),
                 ]);
                 $dtr->save();
@@ -402,6 +410,9 @@ class CalculateController extends Controller
                 : '',
             'philhealthEeShare' => $dtr->philhealth_ee_share !== null
                 ? (string) $dtr->philhealth_ee_share
+                : '',
+            'cashAdvanceDeduction' => $dtr->cash_advance_deduction !== null
+                ? (string) $dtr->cash_advance_deduction
                 : '',
             'entries' => $dtr->entries
                 ->map(fn ($entry) => [
